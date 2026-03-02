@@ -1,4 +1,4 @@
-name: flutter_template
+name: TOLC_notifier
 description: "App to notify when TOLC is open for registration"
 publish_to: "none"
 version: 0.1.0
