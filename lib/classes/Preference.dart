@@ -1,4 +1,5 @@
 import 'TOLCType.dart';
+import 'University.dart';
 
 /// Class to define the preference for the application
 /// to search on the website
@@ -7,9 +8,11 @@ class Preference {
   TOLCType tolcType;
   bool TOLCcasa;
   bool TOLCuni;
+  Set<University> _universities;
 
   /// Constructor for the preference
-  Preference(this.tolcType, this.TOLCcasa, this.TOLCuni);
+  Preference(this.tolcType, this.TOLCcasa, this.TOLCuni) 
+  : _universities = {};
 
   /// define hash method
   int get hashCode => tolcType.hashCode ^ TOLCcasa.hashCode ^ tolcType.hashCode;
@@ -35,4 +38,20 @@ class Preference {
     map['TOLCcasa'],
     map['TOLCuni'],
   );
+
+  /// method to add a university to the list of universities
+  /// in the preference
+  void addUniversity(University university){
+    _universities.add(university); // using set to avoid duplicates
+  }
+
+  /// method to remove a university from the list
+  void removeUniversity(University university){
+    _universities.remove(university);
+  }
+
+  /// method to get a clone of the list of universities
+  /// so as to avoid possibile changes on the original list 
+  /// without the recommended methods
+  Set<University> get universities => Set<University>.from(_universities);
 }
