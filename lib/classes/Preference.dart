@@ -27,16 +27,16 @@ class Preference {
   /// a map object to use SQL
   Map<String, dynamic> toMap() => {
     "tolcType":tolcType.index,
-    "TOLCcasa":TOLCcasa,
-    "TOLCuni":TOLCuni
+    "TOLCcasa":TOLCcasa ? 1 : 0, // conver boolean into integer for SQL
+    "TOLCuni":TOLCuni ? 1 : 0
   };
 
   /// method to convert mapped object
   /// into the Preference
   factory Preference.fromMap(Map<String, dynamic> map) => Preference(
     map['tolcType'],
-    map['TOLCcasa'],
-    map['TOLCuni'],
+    map['TOLCcasa'] == 1, // convert integer into boolean after SQL extraction
+    map['TOLCuni'] == 1,
   );
 
   /// method to add a university to the list of universities
