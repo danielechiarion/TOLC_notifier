@@ -11,6 +11,12 @@ class DatabaseService{
   /// Default constructor
   DatabaseService._init();
 
+  /* !----------------------------------------------------------!
+    Definition of the database and of the methods connected to its 
+    instantiation, creation, definition and closing. 
+    !----------------------------------------------------------!
+   */
+
   /// Method to get the database and, if it doesn't exists,
   /// create it with
   Future<Database> get database async{
@@ -86,4 +92,29 @@ class DatabaseService{
       )
     ''');
   }
+
+  /// Close the database if it's open (used when app/background tasks finish).
+  Future<void> close() async {
+    if (_database != null) {
+      try {
+        if (_database!.isOpen) {
+          await _database!.close();
+        }
+      } finally {
+        _database = null;
+      }
+    }
+  }
+
+
+  /* !----------------------------------------------------------!
+    Methods connected to the specific operations performed
+    by the application, which supports the CRUD operations 
+    and allows to manage the data easily without SQL queries
+    outside this class. 
+
+    This methods are not mandatory for the functioning of the database,
+    but could be useful during the tasks performed by the app. 
+    !----------------------------------------------------------!
+   */
 }
