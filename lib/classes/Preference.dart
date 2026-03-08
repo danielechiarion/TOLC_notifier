@@ -5,14 +5,15 @@ import 'University.dart';
 /// to search on the website
 class Preference {
   /* define attributes */
+  int ID;
   TOLCType tolcType;
   bool TOLCcasa;
   bool TOLCuni;
   Set<University> _universities;
 
   /// Constructor for the preference
-  Preference(this.tolcType, this.TOLCcasa, this.TOLCuni) 
-  : _universities = {};
+  Preference(this.tolcType, this.TOLCcasa, this.TOLCuni, {int ?ID}) 
+  : ID = ID ?? -1, _universities = {};
 
   /// define hash method
   int get hashCode => tolcType.hashCode ^ TOLCcasa.hashCode ^ tolcType.hashCode;
@@ -37,6 +38,7 @@ class Preference {
     map['tolcType'],
     map['TOLCcasa'] == 1, // convert integer into boolean after SQL extraction
     map['TOLCuni'] == 1,
+    ID: map['ID']
   );
 
   /// method to add a university to the list of universities

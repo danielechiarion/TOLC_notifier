@@ -5,6 +5,7 @@ import 'TOLCType.dart';
 /// made on the website
 class Result{
   /* defining attributes */
+  int ID;
   TOLCType tolcType;
   University university;
   String site;
@@ -17,8 +18,8 @@ class Result{
   /// Constructor of the result
   Result(this.tolcType, this.university, this.site, this.availablePlaces, 
   this.endSubscription, this.assessmentDate, this.mode, 
-  {DateTime ?notifyDate}) 
-  : notifyDate = notifyDate ?? DateTime.now();
+  {DateTime ?notifyDate, int ?ID}) 
+  : notifyDate = notifyDate ?? DateTime.now(), ID = ID ?? -1;
 
   /// hash method to compare two results
   @override
@@ -54,6 +55,7 @@ class Result{
     DateTime.parse(map['endSubscription']),
     DateTime.parse(map['assessmentDate']),
     map['mode'],
-    notifyDate: DateTime.parse(map['notifyDate'])
+    notifyDate: DateTime.parse(map['notifyDate']),
+    ID: map['ID']
   );
 }
