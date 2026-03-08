@@ -1,6 +1,10 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
+import '../classes/Preference.dart';
+import '../classes/Result.dart';
+import '../classes/University.dart';
+
 /// Class for the definition of a SQL database, 
 /// with the necessary methods to manage it even for the most simple and frequent 
 /// operations inside the app
@@ -117,4 +121,44 @@ class DatabaseService{
     but could be useful during the tasks performed by the app. 
     !----------------------------------------------------------!
    */
+  /// Method to save a Preference into the database, with all
+  /// the necessary connections to the associated tables
+  Future<bool> save_preference(Preference preference) async{
+    int preferenceID = 0;
+    
+    try{
+      /* first save the preference object into the database */
+      preferenceID = await _database!.insert(
+        'Preference',
+        preference.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }catch(e){
+      throw Exception('Error saving preference: $e');
+    }
+
+    try{
+      /* update all the existing connections to the database
+      using a transaction to avoid unconsistency. 
+      Making different queries can cause problems if the app crash
+      in the middle of the two queries, making it impossible to resume */
+      await _database!.transaction((txn) async {
+        /* first delete all the connections to the preference */
+        await txn.delete('Preference-University', where: 'preference=?', 
+        whereArgs: [preferenceID]);
+
+        /* then save all the updated connections to the database */
+        for(University currentUniversity in preference.universities){
+          await txn.insert('Preference-University', {
+            'preference':preferenceID,
+            'university':currentUniversity.name
+          });
+        }
+      });
+    }catch(e){
+      throw Exception('Error saving preference-university connections: $e');
+    }
+    
+    return true;
+  }
 }
