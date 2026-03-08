@@ -70,7 +70,7 @@ class DatabaseService{
     so as to delete this values in case of deletion of the connected records */
     await db.execute(
       '''
-      CREATE TABLE IF NOT EXISTS Preference-University(
+      CREATE TABLE IF NOT EXISTS Preference_University(
         preference INTEGER,
         university TEXT,
 
@@ -123,8 +123,8 @@ class DatabaseService{
    */
   /// Method to save a Preference into the database, with all
   /// the necessary connections to the associated tables
-  Future<bool> save_preference(Preference preference) async{
-    int preferenceID = 0;
+  Future<bool> savePreference(Preference preference) async{
+    int preferenceID = -1;
     
     try{
       /* first save the preference object into the database */
@@ -137,6 +137,9 @@ class DatabaseService{
       throw Exception('Error saving preference: $e');
     }
 
+    if(preferenceID<0)
+      return false;
+
     try{
       /* update all the existing connections to the database
       using a transaction to avoid unconsistency. 
@@ -144,12 +147,12 @@ class DatabaseService{
       in the middle of the two queries, making it impossible to resume */
       await _database!.transaction((txn) async {
         /* first delete all the connections to the preference */
-        await txn.delete('Preference-University', where: 'preference=?', 
+        await txn.delete('Preference_University', where: 'preference=?', 
         whereArgs: [preferenceID]);
 
         /* then save all the updated connections to the database */
         for(University currentUniversity in preference.universities){
-          await txn.insert('Preference-University', {
+          await txn.insert('Preference_University', {
             'preference':preferenceID,
             'university':currentUniversity.name
           });
@@ -159,6 +162,54 @@ class DatabaseService{
       throw Exception('Error saving preference-university connections: $e');
     }
     
+    return true;
+  }
+
+  /// Method to get the preferences saved into the database, 
+  /// related to the universities and all the connections between them.
+  /// The search is made with the ID of the preference,
+  /// to increase the performance of the algorithm.
+  Future<List<Preference>> getPreferences() async{
+    Map<int, Preference> mapPreferences = {}; // use the map to research by ID
+
+    /* make the request to get the preferences
+    from the database */
+    List<Map<String, dynamic>> result = [];
+    try{
+      result = await _database!.rawQuery(
+        '''
+        SELECT p.id, p.tolcType, p.TOLCcasa, p.TOLCuni 
+        FROM Preference p JOIN PreferencE_Univerity pu
+        ON p.id = pu.preference
+        '''
+      );
+    }catch(e){
+      throw Exception('Error fetching preferences: $e');
+    }
+
+    for(Map<String, dynamic> row in result){
+      /* get the ID and add the preference if absent */
+      int id = row['id']; 
+      mapPreferences.putIfAbsent(id, () => Preference.fromMap(row));
+
+      /* add the universities to the preference */
+      mapPreferences[id]!.addUniversity(University(row['university']));
+    }
+
+    return mapPreferences.values.toList();
+  }
+
+  /// Method to delete a preference from the database,
+  /// with all the necessary connections deleted, as well.
+  Future<bool> deletePreference(Preference preference) async{
+    try{
+      /* delete the preference from the database, with all the connections
+      to the other tables, thanks to the cascade delete */
+      _database!.delete('Preference', where: 'id=?', whereArgs: [preference.ID]);
+    }catch(e){
+      throw Exception('Error deleting preference: $e');
+    }
+
     return true;
   }
 }
