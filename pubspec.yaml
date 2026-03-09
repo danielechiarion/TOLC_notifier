@@ -19,6 +19,8 @@ dependencies:
   http: ^1.1.0
   # work manager for scheduled processes
   workmanager: ^0.5.2
+  # logging dependencies
+  logger: ^2.4.0
 
 dev_dependencies:
   flutter_test:
