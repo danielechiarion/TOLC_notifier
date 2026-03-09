@@ -3,6 +3,7 @@ import 'package:html/parser.dart' as html_parser;
 import 'package:html/dom.dart' as dom;
 
 import 'database_helper.dart';
+import 'logger_utils.dart';
 
 import '../classes/Preference.dart';
 import '../classes/TOLCType.dart';
@@ -22,9 +23,11 @@ Future<List<dom.Element>> scrapeHtml(Preference preference) async{
       }else{
         /* if the response is not OK 
         continue with the cycle to try it again */
+        logger.w('Failed to load the page ${preference.tolcType.link} with status code ${response.statusCode}');
         continue;
       }
     }catch(e){
+      logger.e('Error occurred while scraping HTML for ${preference.tolcType.link}: $e');
       continue;
     }
   }

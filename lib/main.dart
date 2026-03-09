@@ -1,7 +1,18 @@
+import 'package:TOLC_notifier/classes/TOLCType.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'services/TOLC_finder.dart';
+import 'classes/Preference.dart';
+import 'package:html/dom.dart' as dom;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
+  List<dom.Element> result = await scrapeHtml(Preference(TOLCType.engineering, true, true));
+  for(dom.Element element in result){
+    print(element.innerHtml);
+  }
+
+  //runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
