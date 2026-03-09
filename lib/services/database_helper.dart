@@ -92,7 +92,9 @@ class DatabaseService{
         endSubscription TEXT,
         assessmentDate TEXT,
         notifyDate TEXT,
-        mode TEXT
+        mode TEXT,
+
+        UNIQUE(tolcType, university, site, assessmentDate)
       )
     ''');
   }
@@ -211,5 +213,94 @@ class DatabaseService{
     }
 
     return true;
+  }
+
+  /// Method to update a preference into the database, 
+  /// with overriding all the previous connections to the other
+  /// tables and the old values, as well
+  Future<bool> updatePreference(Preference preference) async{
+    try{
+      /* update the preference into the database, with all the connections
+      to the other tables, thanks to the cascade delete */
+      _database!.update('Preference', preference.toMap(), where: 'id=?', whereArgs: [preference.ID]);
+    }catch(e)
+    {
+      throw Exception('Error updating preference: $e');
+    }
+
+    try{
+      /* update all the existing connections to the database
+      using a transaction to avoid unconsistency. 
+      Making different queries can cause problems if the app crash
+      in the middle of the two queries, making it impossible to resume */
+      await _database!.transaction((txn) async {
+        /* first delete all the connections to the preference */
+        await txn.delete('Preference_University', where: 'preference=?', 
+        whereArgs: [preference.ID]);
+
+        /* then save all the updated connections to the database */
+        for(University currentUniversity in preference.universities){
+          await txn.insert('Preference_University', {
+            'preference':preference.ID,
+            'university':currentUniversity.name
+          });
+        }
+      });
+    }catch(e){
+      throw Exception('Error saving preference-university connections: $e');
+    }
+
+    return true;
+  }
+
+  /// Method to save a result into the database, with 
+  /// all the foreign keys of the other entities. 
+  /// According to the design of the app, 
+  /// the table of the result doesn't need to be connected to the
+  /// other tables of the database. 
+  Future<bool> saveResult(Result result) async{
+    try{
+      /* save the result into the database */
+      await _database!.insert(
+        'Result',
+        result.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }catch(e){
+      throw Exception('Error saving result: $e');
+    }
+
+    return true;
+  }
+
+  /// Method to get the result saved into the database
+  /// ordered by the date of the notification
+  Future<List<Result>> getResults() async{
+    /* define lists to use during SQL handling */
+    List<Map<String, dynamic>> result = [];
+    List<Result> output = [];
+
+    try{
+      /* select all the results looking at the date of the notification
+      and order them by this date, from the most recent to the oldest one */
+      result = await _database!.rawQuery(
+        '''
+          SELECT (ID, tolcType, university, site, availablePlaces, endSubscription, assessmentDate, notifyDate, mode)
+          FROM Result WHERE assessmentDate >= ?
+          ORDER BY notifyDate DESC
+        ''',
+        [DateTime.now().toIso8601String()]
+      );
+    }catch(e){
+      throw Exception('Error fetching results: $e');
+    }
+
+    /* now parse all the elements and 
+    convert them into a Result object */
+    for(Map<String, dynamic> row in result){
+      output.add(Result.fromMap(row));
+    }
+
+    return output;
   }
 }

@@ -32,6 +32,10 @@ class Result{
     return other is Result && hashCode == other.hashCode;
   }
 
+  /// Method use to compare the result to 
+  /// another one by the date when the system has noticed
+  int compareTo(Result other) => notifyDate.compareTo(other.notifyDate);
+
   /// method to convert a result into a map object
   /// to use it for SQL manipulation
   Map<String, dynamic> toMap() => {
@@ -39,10 +43,10 @@ class Result{
     "university":university.name,
     "site":site,
     "availablePlaces":availablePlaces,
-    "endSubscription":endSubscription.toString(),
-    "assessmentDate": assessmentDate.toString(),
+    "endSubscription":endSubscription.toIso8601String(),
+    "assessmentDate": assessmentDate.toIso8601String(),
     "mode":mode,
-    "notifyDate": notifyDate.toString()
+    "notifyDate": notifyDate.toIso8601String()
   };
 
   /// method to convert a mapped object into a result
