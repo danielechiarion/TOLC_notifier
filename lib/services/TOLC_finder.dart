@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import 'package:html/dom.dart' as dom;
@@ -8,7 +7,6 @@ import 'database_helper.dart';
 import 'logger_utils.dart';
 
 import '../classes/Preference.dart';
-import '../classes/TOLCType.dart';
 import '../classes/University.dart';
 import '../classes/Result.dart';
 
