@@ -1,16 +1,26 @@
-import 'package:TOLC_notifier/classes/TOLCType.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importante
+import 'package:sqflite/sqflite.dart';
 
 import 'services/TOLC_finder.dart';
 import 'classes/Preference.dart';
 import 'package:html/dom.dart' as dom;
 
+import 'package:TOLC_notifier/classes/TOLCType.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
-  List<dom.Element> result = await scrapeHtml(Preference(TOLCType.engineering, true, true));
-  for(dom.Element element in result){
-    print(element.innerHtml);
+  if (Platform.isWindows || Platform.isLinux) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
   }
+  
+  bool result = await TOLC_finder_main();
+  if(result)
+    print("Operazione riuscita con successo");
+  else
+    print("Operazione fallita");
 
   //runApp(const MyApp());
 }

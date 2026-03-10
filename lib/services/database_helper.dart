@@ -45,6 +45,19 @@ class DatabaseService{
     return await openDatabase(path, version: 1, onCreate: _defineTables);
   }
 
+  /// Public method to init the database,
+  /// without telling the path in which it will be saved
+  Future<void> initialize() async{
+    /* if the device is not null
+    return it immediately */
+    if(_database != null) 
+      return;
+
+    /* otherwise, init it and
+    return it to the user */
+    _database = await _initDatabase('app_data.db');
+  }
+
   /* function to define the database tables with all their structure */
   Future<void> _defineTables(Database db, int version) async {
     /* create table of the university */
@@ -181,7 +194,7 @@ class DatabaseService{
       result = await _database!.rawQuery(
         '''
         SELECT p.id, p.tolcType, p.TOLCcasa, p.TOLCuni 
-        FROM Preference p JOIN PreferencE_Univerity pu
+        FROM Preference p JOIN Preference_University pu
         ON p.id = pu.preference
         '''
       );
@@ -285,7 +298,7 @@ class DatabaseService{
       and order them by this date, from the most recent to the oldest one */
       result = await _database!.rawQuery(
         '''
-          SELECT (ID, tolcType, university, site, availablePlaces, endSubscription, assessmentDate, notifyDate, mode)
+          SELECT ID, tolcType, university, site, availablePlaces, endSubscription, assessmentDate, notifyDate, mode
           FROM Result WHERE assessmentDate >= ?
           ORDER BY notifyDate DESC
         ''',
