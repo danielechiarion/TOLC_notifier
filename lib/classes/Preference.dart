@@ -56,4 +56,10 @@ class Preference {
   /// so as to avoid possibile changes on the original list 
   /// without the recommended methods
   Set<University> get universities => Set<University>.from(_universities);
+
+  /// Method to control if a university is inside the list using
+  /// the name or part of it
+  bool isThereUniverisity(University university){
+    return _universities.any((singleUniversity) => university.name.toLowerCase().contains(singleUniversity.name.toLowerCase()));
+  }
 }
