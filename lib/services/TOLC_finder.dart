@@ -5,11 +5,14 @@ import 'package:intl/intl.dart';
 
 import 'database_helper.dart';
 import 'logger_utils.dart';
+import 'notification_helper.dart';
 
 import '../classes/Preference.dart';
 import '../classes/University.dart';
 import '../classes/Result.dart';
 
+/// Function to scrape the html of the page and get the elements
+/// containing the TOLC information
 Future<List<dom.Element>> scrapeHtml(Preference preference) async{
   final url = Uri.parse(preference.tolcType.link); // establish the link
   /* try three times to get the elements */
@@ -90,4 +93,72 @@ List<Result> filterResults(Preference preference, List<Result> totalResults, Lis
   }
 
   return totalResults;
+}
+
+/// Main function of the service, which is called
+/// to execute following a certain frequency. 
+/// It returns a boolean to indicate if the execution has been successful or not
+Future<bool> TOLC_finder_main() async {
+  /* variable and lists initialization to
+  avoid possible null errors due to exceptions */
+  List<Preference> preferences = [];
+  List<Result> previousResults = [];
+  
+  /* first get the database and get the preferences */
+  DatabaseService database = DatabaseService.instance;
+  try{
+    preferences = await database.getPreferences();
+  }catch(e){
+    logger.e("Error occured while searching preferences: ${e}");
+    database.close();
+    return false;
+  }
+
+  /* get the results from the database */
+  try{
+    previousResults = await database.getResults();
+  }catch(e){
+    logger.e("Error occured while searching previous results: ${e}");
+    database.close();
+    return false;
+  }
+
+  /* instantiate notification object */
+  NotificationsService notification = NotificationsService();
+  notification.init(); // initialize the notification service
+  
+  /* start a cycle to see all the preferences
+  and find possible matches */
+  for(Preference currentPreference in preferences){
+    List<Result> currentResults = generateResults(currentPreference, await scrapeHtml(currentPreference));
+    if(currentResults.isEmpty)
+      continue; // if no result has been found continue with the next
+    
+    List<Result> finalResults = filterResults(currentPreference, currentResults, previousResults);
+
+    /* if the final result has produced some results
+    put a notification for every message */
+    for(Result singleResult in finalResults){
+      /* show the notification for the new result found */
+      await notification.showNotification(
+        title: "Nuovo ${singleResult.tolcType.name} disponibile!",
+        body: "${singleResult.university.name} il ${DateFormat('dd/MM/yyyy').format(singleResult.assessmentDate)}"
+      );
+
+      /* try to save the result found for a maximum 
+      of 3 times */
+      for(int i=0;i<3;i++){
+        try{
+          database.saveResult(singleResult);
+          break;
+        }catch(e){
+          /* send a warning if the result has not been saved */
+          logger.w("Error occured while saving the result ${singleResult.toString()}\nFollowing error reported: ${e}");
+        }
+      }
+    }
+  }
+
+  database.close(); // close the database connection
+  return true;
 }
