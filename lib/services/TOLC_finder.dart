@@ -19,7 +19,7 @@ Future<List<dom.Element>> scrapeHtml(Preference preference) async{
       if(response.statusCode == 200){
         /* analize html and get the document */
         var document = html_parser.parse(response.body);
-        return document.querySelectorAll('.tablesorter tbody tr');
+        return document.querySelectorAll('.tablesorter tbody');
       }else{
         /* if the response is not OK 
         continue with the cycle to try it again */
