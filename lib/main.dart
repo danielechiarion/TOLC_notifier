@@ -4,25 +4,13 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importante
 import 'package:sqflite/sqflite.dart';
 
 import 'services/TOLC_finder.dart';
-import 'classes/Preference.dart';
-import 'package:html/dom.dart' as dom;
 
-import 'package:TOLC_notifier/classes/TOLCType.dart';
+import 'frontend/MainNavigation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-  
-  bool result = await TOLC_finder_main();
-  if(result)
-    print("Operazione riuscita con successo");
-  else
-    print("Operazione fallita");
 
-  //runApp(const MyApp());
+  runApp(const MainNavigation());
 }
 
 class MyApp extends StatelessWidget {
