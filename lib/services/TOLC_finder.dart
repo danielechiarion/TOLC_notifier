@@ -81,9 +81,6 @@ List<Result> generateResults(Preference preference, List<dom.Element> elements){
 /// so as to return the results wanted. 
 /// The function also tries to avoid duplicates with the previous results
 List<Result> filterResults(Preference preference, List<Result> totalResults, List<Result> previousResults){
-  /* define variables for the starting execution */
-  bool check; // to control if the result is valid till the end
-
   /* start the cycle to control the different attributes */
   totalResults.removeWhere((res) {
     /* first control if the result found from the page is not present 
