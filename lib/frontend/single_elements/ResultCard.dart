@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../classes/Result.dart';
 
+/// Class to display the results graphically
+/// on the application
 class ResultCard {
   /* attributes definition */
   bool _new;
