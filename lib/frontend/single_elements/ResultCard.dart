@@ -17,7 +17,7 @@ class ResultCard {
   /* function to get the starting content of the
   result which could be modified later using badges,
   or other widgets available */
-  Widget _getResultContent(BuildContext context){
+  Widget create(BuildContext context){
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(15))),
@@ -30,11 +30,14 @@ class ResultCard {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "${_result.tolcType.name} - ${_result.university.name}",
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                Expanded(
+                  child: Text(
+                        "${_result.tolcType.name} - ${_result.university.name}",
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,),
+                        softWrap: true,
+                        overflow: TextOverflow.visible 
+                  ),
                 ),
                 if(_new)
                   const Badge(label: Text("Nuovo"))

@@ -9,6 +9,11 @@ import 'frontend/MainNavigation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
+  // Initialize sqflite for desktop (Windows/Linux/macOS)
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
 
   runApp(const MainNavigation());
 }
