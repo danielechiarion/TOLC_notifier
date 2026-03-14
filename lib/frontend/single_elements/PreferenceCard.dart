@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../classes/Preference.dart';
 
 /// Class to display the preference configured
@@ -9,10 +10,11 @@ import '../../classes/Preference.dart';
 class PreferenceCard extends StatefulWidget {
   /* define attributes for preference card */
   final Preference _preference;
+  final Function(Preference preference) deleteFunction;
 
   /// Constructor for the PreferenceCard.
   /// Note: Variables that change (state) are moved to the _State class.
-  const PreferenceCard({super.key, required Preference preference}) 
+  const PreferenceCard({super.key, required this.deleteFunction, required Preference preference}) 
       : _preference = preference;
 
   @override
@@ -69,7 +71,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                 
                 /* section of the buttons for editing and confirming changes */
                 IconButton(
-                  icon: Icon(_isEditing ? Icons.check : Icons.edit_note),
+                  icon: Icon(_isEditing ? Icons.check : Icons.edit),
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () {
                     /* Notifies the framework that the internal state has changed */
@@ -85,7 +87,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                     icon: const Icon(Icons.delete_outline),
                     color: Theme.of(context).colorScheme.error,
                     onPressed: () {
-                      // Logic to delete the preference could be placed here
+                      widget.deleteFunction(widget._preference);
                     },
                   ),
               ],
@@ -94,28 +96,32 @@ class _PreferenceCardState extends State<PreferenceCard> {
             
             Row(
               children: [
-                ListTile(
-                  leading: Icon(Icons.school),
-                  title: Text("Università selezionate..."),
-                  subtitle: Text(
-                    /* Logic to create a bulleted list string:
-                      1. Take only the first 3 elements to keep the UI clean.
-                      2. Join them with a bullet separator.
-                      3. If there are more than 3 items, append '...' manually.
-                    */
-                    "${widget._preference.universities.take(3).map((e) => "• $e").join(" ")}${widget._preference.universities.length > 3 ? "  ..." : ""}",
-                    
-                    /* Standard Material handling for long text:
-                      - maxLines: 1 ensures the card height remains consistent.
-                      - ellipsis: adds '...' if a single item name is too long for the screen.
-                    */
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                /* selected universities */
+                /* if it's in view mode visualize only the
+                first  */
+                if(!_isEditing)
+                  ListTile(
+                    leading: Icon(Icons.school),
+                    title: Text("Università selezionate..."),
+                    subtitle: Text(
+                      /* Logic to create a bulleted list string:
+                        1. Take only the first 3 elements to keep the UI clean.
+                        2. Join them with a bullet separator.
+                        3. If there are more than 3 items, append '...' manually.
+                      */
+                      "${widget._preference.universities.take(3).map((e) => "• $e").join(" ")}${widget._preference.universities.length > 3 ? "  ..." : ""}",
+                      
+                      /* Standard Material handling for long text:
+                        - maxLines: 1 ensures the card height remains consistent.
+                        - ellipsis: adds '...' if a single item name is too long for the screen.
+                      */
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                ),
                 
                 /* section to specify whether 
                 TOLC@uni and TOLC@casa have been enabled  */
