@@ -33,7 +33,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
   bool _changesHappened = false; // variable to display if any changes in edit mode have been made
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     /* We use the 'create' logic directly inside the build method 
        as it is the standard practice for Flutter Widgets */
     return Card(
@@ -78,11 +78,11 @@ class _PreferenceCardState extends State<PreferenceCard> {
                 IconButton(
                   icon: Icon(_isEditing ? Icons.check : Icons.edit),
                   color: Theme.of(context).colorScheme.primary,
-                  onPressed: () {
+                  onPressed: () async {
                     /* if changes have reported 
                     save the preference into the database */
                     if(_changesHappened){
-                      _updatePreference(widget._preference);
+                      await _updatePreference(widget._preference);
                     }
                     
                     /* Notifies the framework that the internal state has changed */
@@ -285,7 +285,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
   /// Function to update an existing preference 
   /// during the editing mode 
   /// using the connection with the database
-  void _updatePreference(Preference preference) async{
+  Future<void> _updatePreference(Preference preference) async{
     /* create connection with the database */
     DatabaseService database = DatabaseService.instance;
     
