@@ -14,12 +14,14 @@ import '../../services/logger_utils.dart';
 class PreferenceCard extends StatefulWidget {
   /* define attributes for preference card */
   final Preference _preference;
+  final Set<University> _universityList;
   final Future<void> Function(Preference preference) deleteFunction;
 
   /// Constructor for the PreferenceCard.
   /// Note: Variables that change (state) are moved to the _State class.
-  const PreferenceCard({super.key, required this.deleteFunction, required Preference preference}) 
-      : _preference = preference;
+  const PreferenceCard({super.key, required this.deleteFunction, 
+  required Preference preference, required Set<University> universities}) 
+      : _preference = preference, _universityList = universities;
 
   @override
   State<PreferenceCard> createState() => _PreferenceCardState();
@@ -31,7 +33,16 @@ class _PreferenceCardState extends State<PreferenceCard> {
   /* variable to express a possible change in the UI mode */
   bool _isEditing = false; // variable to display if edit mode is enabled
   bool _changesHappened = false; // variable to display if any changes in edit mode have been made
+  Set<University> _universitySuggestions = {};
 
+  @override
+  void initState(){
+    super.initState();
+    _universitySuggestions = widget._universityList;
+  }
+
+  /// Function to return the single element of the card
+  /// with both the visual and editable part
   @override
   Widget build(BuildContext context){
     /* We use the 'create' logic directly inside the build method 
@@ -177,6 +188,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                                             widget._preference.removeUniversitbyIndex(index);
                                           }else{
                                             uni.name = newValue.trim();
+                                            _universitySuggestions.add(University(newValue.trim()));
                                           }
                                           _changesHappened = true;
                                         });
@@ -256,6 +268,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
             if (value.trim().isNotEmpty) {
               setState(() {
                 widget._preference.universities.add(University(value.trim()));
+                
               });
               Navigator.pop(context);
             }
@@ -271,6 +284,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
               if (newUni.trim().isNotEmpty) {
                 setState(() {
                   widget._preference.universities.add(University(newUni.trim()));
+                  _universitySuggestions.add(University(newUni.trim()));
                 });
                 Navigator.pop(context);
               }

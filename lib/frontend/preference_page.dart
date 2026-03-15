@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../classes/Preference.dart';
-import '../classes/TOLCType.dart';
 import '../classes/University.dart';
 import '../services/database_helper.dart';
 import '../services/logger_utils.dart';
@@ -12,12 +10,9 @@ import 'single_elements/PreferenceCard.dart';
 /// and give them to possibilty to be changed,
 /// added, or eliminated
 class PreferencePage extends StatefulWidget{
-  /* define attributes for preference card */
-  final Set<Preference> _preferenceList;
 
   /// Define constructor for the preference page
-  const PreferencePage({super.key, Set<Preference>? initialList}) 
-      : _preferenceList = initialList ?? const {};
+  const PreferencePage({super.key}); 
 
   @override
   State<PreferencePage> createState() => _PreferencePageState();
@@ -26,18 +21,21 @@ class PreferencePage extends StatefulWidget{
 /* class to handle changes in the 
 preference list */
 class _PreferencePageState extends State<PreferencePage>{
-  late Set<Preference> _localList; // create local list for the preference one
+  late Set<Preference> _preferenceList; // create local list for the preference one
+  late Set<University> _universityList; // create local list for the university
 
   /// Fuction to init the preference page
   /// and the state with the initial data
   @override
   Future<void> initState() async{
+    super.initState();
     final DatabaseService database = DatabaseService.instance;
 
     try {
       await database.initialize();
       setState(() async {
-        _localList = Set.from(await database.getResults());
+        _preferenceList = Set.from(await database.getResults());
+        _universityList = Set.from(await database.getUniversities());
       });
     } catch (e) {
       logger.e("Error while fetching results from the databae: {$e}");
@@ -73,7 +71,7 @@ class _PreferencePageState extends State<PreferencePage>{
               PreferenceCardState is already linked to the PreferenceCard,
               so just need to invoke the constructor to make the widget appear */
               Column(
-                children: _localList.map((item) => PreferenceCard(deleteFunction: _deletePreference, preference: item)).toList(),
+                children: _preferenceList.map((item) => PreferenceCard(deleteFunction: _deletePreference, preference: item, universities: _universityList,)).toList(),
               )
             ],
           ),
