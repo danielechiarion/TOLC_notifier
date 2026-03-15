@@ -4,6 +4,7 @@ import '../../classes/Preference.dart';
 import '../../classes/University.dart';
 
 import '../../services/database_helper.dart';
+import '../../services/logger_utils.dart';
 
 /// Class to display the preference configured
 /// which could be changed during the configuration.
@@ -284,13 +285,18 @@ class _PreferenceCardState extends State<PreferenceCard> {
   /// Function to update an existing preference 
   /// during the editing mode 
   /// using the connection with the database
-  void _updatePreference(Preference preference){
+  void _updatePreference(Preference preference) async{
     /* create connection with the database */
     DatabaseService database = DatabaseService.instance;
-    database.initialize();
-
-    database.updatePreference(preference); // update the preference
-    database.close(); // close the database
+    
+    try{
+      await database.initialize();
+      await database.updatePreference(preference); // update the preference
+    }catch(e){
+      logger.e("Error while updating the preference: $e");
+    }finally{
+      await database.close(); // close the database
+    }
 
     _changesHappened = false; // update the boolean at the end of the change
   }

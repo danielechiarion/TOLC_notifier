@@ -12,13 +12,13 @@ class ResultsPage {
   and get them from the database */
   static Future<void> init() async{
     final DatabaseService database = DatabaseService.instance;
-    await database.initialize();
 
     try {
+      await database.initialize();
       _results = await database.getResults();
     } catch (e) {
       _results = [];
-      logger.e(e);
+      logger.e("Error while fetching results from the databae: {$e}");
     } finally {
       await database.close();
     }
