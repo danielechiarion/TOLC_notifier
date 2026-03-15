@@ -173,6 +173,13 @@ class DatabaseService{
           });
         }
       });
+
+      /* then save the univerisities into the specified table.
+      In this case there is no use to delete them or save them
+      in another function, because they walk along with the preferences*/
+      for(University currentUniversity in preference.universities){
+        await _database!.insert('Univerisity', currentUniversity.toMap());
+      }
     }catch(e){
       throw Exception('Error saving preference-university connections: $e');
     }
@@ -312,6 +319,23 @@ class DatabaseService{
     convert them into a Result object */
     for(Map<String, dynamic> row in result){
       output.add(Result.fromMap(row));
+    }
+
+    return output;
+  }
+
+  /// Function to get the universities
+  /// from the database
+  Future<List<University>> getUniversities() async{
+    /* define the list of variables */
+    List<Map<String, dynamic>> results = [];
+    List<University> output = [];
+
+    /* get the results from the database */
+    results = await _database!.query('University', columns: ['name']);
+    /* convert the result into a list of objects */
+    for(Map<String,dynamic> row in results){
+      output.add(University.fromMap(row));
     }
 
     return output;
