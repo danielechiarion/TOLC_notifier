@@ -14,7 +14,7 @@ import '../../services/logger_utils.dart';
 class PreferenceCard extends StatefulWidget {
   /* define attributes for preference card */
   final Preference _preference;
-  final Function(Preference preference) deleteFunction;
+  final Future<void> Function(Preference preference) deleteFunction;
 
   /// Constructor for the PreferenceCard.
   /// Note: Variables that change (state) are moved to the _State class.
@@ -97,8 +97,8 @@ class _PreferenceCardState extends State<PreferenceCard> {
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     color: Theme.of(context).colorScheme.error,
-                    onPressed: () {
-                      widget.deleteFunction(widget._preference);
+                    onPressed: () async {
+                      await widget.deleteFunction(widget._preference);
                     },
                   ),
               ],

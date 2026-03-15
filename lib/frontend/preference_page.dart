@@ -79,13 +79,13 @@ class _PreferencePageState extends State<PreferencePage>{
           ),
         )
       ),
-      
+
     );
   }
 
   /* function to pass to the Preference Card in order to 
   destroy itself and update the page */
-  void _deletePreference(Preference preference) async {
+  Future<void> _deletePreference(Preference preference) async {
     /* initialization of the database */
     DatabaseService database = DatabaseService.instance;
 
