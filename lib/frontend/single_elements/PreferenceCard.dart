@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../classes/Preference.dart';
+import '../../classes/University.dart';
+
+import '../../services/database_helper.dart';
 
 /// Class to display the preference configured
 /// which could be changed during the configuration.
@@ -25,7 +28,8 @@ class PreferenceCard extends StatefulWidget {
 /// and UI updates when the user interacts with the card.
 class _PreferenceCardState extends State<PreferenceCard> {
   /* variable to express a possible change in the UI mode */
-  bool _isEditing = false;
+  bool _isEditing = false; // variable to display if edit mode is enabled
+  bool _changesHappened = false; // variable to display if any changes in edit mode have been made
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +78,12 @@ class _PreferenceCardState extends State<PreferenceCard> {
                   icon: Icon(_isEditing ? Icons.check : Icons.edit),
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () {
+                    /* if changes have reported 
+                    save the preference into the database */
+                    if(_changesHappened){
+                      _updatePreference(widget._preference);
+                    }
+                    
                     /* Notifies the framework that the internal state has changed */
                     setState(() {
                       _isEditing = !_isEditing;
@@ -121,8 +131,80 @@ class _PreferenceCardState extends State<PreferenceCard> {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ),
-                
+                  )
+                /* add the list of inputs for of the universities */
+                else
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Università selezionate",
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8.0, // Gap between adjacent chips
+                            runSpacing: 4.0, // Gap between lines
+                            children: [
+                              // 1. Map existing universities to Editable InputChips
+                              ...widget._preference.universities.toList().asMap().entries.map((entry) {
+                                /* define the value and the index */
+                                int index = entry.key;
+                                University uni = entry.value;
+
+                                return InputChip(
+                                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                                  label: IntrinsicWidth(
+                                    child: TextField(
+                                      // 'uni.name' if it's an object, just 'uni' if it's a string
+                                      controller: TextEditingController(text: uni.name)..selection = TextSelection.fromPosition(TextPosition(offset: uni.name.length)),
+                                      autofocus: false,
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                      decoration: const InputDecoration(
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                        border: InputBorder.none,
+                                        hintText: "Nome università",
+                                      ),
+                                      onSubmitted: (newValue) {
+                                        setState(() {
+                                          /* if the value is empty you
+                                          need to remove the university from the preference */
+                                          if(newValue.trim().isEmpty){
+                                            widget._preference.removeUniversitbyIndex(index);
+                                          }else{
+                                            uni.name = newValue.trim();
+                                          }
+                                          _changesHappened = true;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  onDeleted: () {
+                                    setState(() {
+                                      widget._preference.universities.remove(uni);
+                                      _changesHappened = true;
+                                    });
+                                  },
+                                  deleteIcon: const Icon(Icons.cancel, size: 18),
+                                );
+                              }),
+
+                              // 2. The "Add" button
+                              ActionChip(
+                                avatar: const Icon(Icons.add, size: 18),
+                                label: const Text("Add university"),
+                                onPressed: () => _showAddUniversityDialog(context),
+                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                ,
                 /* section to specify whether 
                 TOLC@uni and TOLC@casa have been enabled  */
                 Column(
@@ -148,5 +230,68 @@ class _PreferenceCardState extends State<PreferenceCard> {
         ),
       ),
     );
+  }
+
+  /// Function to add continuosly an input dialog
+  /// to add every single time a new univesity
+  /// in the editing mode
+  void _showAddUniversityDialog(BuildContext context) {
+    String newUni = "";
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Add University"),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: "Enter university name",
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (value) {
+            newUni = value;
+            _changesHappened = true;
+          },
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              setState(() {
+                widget._preference.universities.add(University(value.trim()));
+              });
+              Navigator.pop(context);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (newUni.trim().isNotEmpty) {
+                setState(() {
+                  widget._preference.universities.add(University(newUni.trim()));
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Add"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Function to update an existing preference 
+  /// during the editing mode 
+  /// using the connection with the database
+  void _updatePreference(Preference preference){
+    /* create connection with the database */
+    DatabaseService database = DatabaseService.instance;
+    database.initialize();
+
+    database.updatePreference(preference); // update the preference
+    database.close(); // close the database
+
+    _changesHappened = false; // update the boolean at the end of the change
   }
 }
