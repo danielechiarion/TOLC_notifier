@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 /// of toasts to appear in the application
 enum ToastType{
   /* define different values of the enumerator */
-  success(Colors.green),
-  error(Colors.red),
-  warning(Colors.amber),
-  fatal(Colors.purple);
+  success(Colors.green, Icons.check),
+  error(Colors.red, Icons.close),
+  warning(Colors.amber, Icons.warning),
+  fatal(Colors.purple, Icons.error);
 
   /* define the variables for the enumerator */
   final Color color;
+  final IconData icon;
 
   /* define constructor for the enumerator */
-  const ToastType(this.color);
+  const ToastType(this.color, this.icon);
 }
 
 /// Class to manage the app toast display
@@ -32,11 +33,25 @@ class AppToast{
     /* show the snackbar */
     scaffoldMessenger.showSnackBar(
       SnackBar(
-        content: Text(message),
         backgroundColor: toastType.color,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(20),
-        duration: const Duration(seconds: 3), // duration to set
+        duration: const Duration(seconds: 3),
+        content: Row(
+          children: [
+            Icon(
+              toastType.icon,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
