@@ -12,8 +12,8 @@ class Preference {
   Set<University> _universities;
 
   /// Constructor for the preference
-  Preference(this.tolcType, this.TOLCcasa, this.TOLCuni, {int ?ID}) 
-  : ID = ID ?? -1, _universities = {};
+  Preference(this.tolcType, this.TOLCcasa, this.TOLCuni, {int ?ID, Set<University>? universities}) 
+  : ID = ID ?? -1, _universities = universities ?? {};
 
   /// define hash method
   int get hashCode => tolcType.hashCode ^ TOLCcasa.hashCode ^ tolcType.hashCode;

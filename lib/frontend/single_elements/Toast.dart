@@ -6,7 +6,8 @@ enum ToastType{
   /* define different values of the enumerator */
   success(Colors.green),
   error(Colors.red),
-  warning(Colors.amber);
+  warning(Colors.amber),
+  fatal(Colors.purple);
 
   /* define the variables for the enumerator */
   final Color color;
