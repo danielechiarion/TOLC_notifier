@@ -203,8 +203,8 @@ class DatabaseService{
     try{
       result = await _database!.rawQuery(
         '''
-        SELECT p.id, p.tolcType, p.TOLCcasa, p.TOLCuni 
-        FROM Preference p JOIN Preference_University pu
+        SELECT p.id, p.tolcType, p.tolcCasa, p.tolcUni, pu.university
+        FROM Preference p LEFT JOIN Preference_University pu
         ON p.id = pu.preference
         '''
       );
@@ -215,10 +215,12 @@ class DatabaseService{
     for(Map<String, dynamic> row in result){
       /* get the ID and add the preference if absent */
       int id = row['id']; 
-      mapPreferences.putIfAbsent(id, () => Preference.fromMap(row));
+      mapPreferences.putIfAbsent(id, () => Preference.fromMap({...row, 'ID': id}));
 
-      /* add the universities to the preference */
-      mapPreferences[id]!.addUniversity(University(row['university']));
+      /* add the universities to the preference only if present */
+      if(row['university'] != null){
+        mapPreferences[id]!.addUniversity(University(row['university']));
+      }
     }
 
     return mapPreferences.values.toList();

@@ -28,8 +28,8 @@ class Preference {
   /// a map object to use SQL
   Map<String, dynamic> toMap() => {
     "tolcType":tolcType.index,
-    "TOLCcasa":TOLCcasa ? 1 : 0, // conver boolean into integer for SQL
-    "TOLCuni":TOLCuni ? 1 : 0
+    "tolcCasa":TOLCcasa ? 1 : 0, // conver boolean into integer for SQL
+    "tolcUni":TOLCuni ? 1 : 0
   };
 
   /// method to convert mapped object
