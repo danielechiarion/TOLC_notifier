@@ -35,9 +35,9 @@ class Preference {
   /// method to convert mapped object
   /// into the Preference
   factory Preference.fromMap(Map<String, dynamic> map) => Preference(
-    map['tolcType'],
-    map['TOLCcasa'] == 1, // convert integer into boolean after SQL extraction
-    map['TOLCuni'] == 1,
+    TOLCType.values[map['tolcType']],
+    map['tolcCasa'] == 1, // convert integer into boolean after SQL extraction
+    map['tolcUni'] == 1,
     ID: map['ID']
   );
 

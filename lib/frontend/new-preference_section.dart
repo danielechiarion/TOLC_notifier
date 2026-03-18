@@ -25,59 +25,98 @@ class NewPreferenceSection extends StatelessWidget{
     for the form to fill */
     final formKey = GlobalKey<FormBuilderState>();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Aggiungi preferenza")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: FormBuilder(
-          key: formKey,
-          child: Column(
-            children: [
-              /* dropdown for the selection of the TOLC type */
-              FormBuilderDropdown(
-                name: 'tolc_type', 
-                decoration: InputDecoration(labelText: 'Seleziona un TOLC'),
-                initialValue: TOLCType.engineering,
-                items: TOLCType.values.map((singleTolc) => 
-                        DropdownMenuItem(value:singleTolc, 
-                                          child: Text(singleTolc.name))
-                      ).toList()
-              ),
-              /* switch to select which mode of TOLC
-              to enable on the preference research */
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  FormBuilderSwitch(
-                    name: 'tolcUni_enabled', 
-                    title: Text("Abilita TOLC@uni"),
-                    initialValue: true,
-                    decoration: const InputDecoration(border: InputBorder.none)
+    return Theme(
+      data: Theme.of(context).copyWith(
+        // Rimuove il colore viola di default (Material 3) e usa il nero
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.black, primary: Colors.black),
+        textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black, displayColor: Colors.black),
+      ),
+      child: Scaffold(
+        appBar: AppBar(title: const Text("Aggiungi preferenza")),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: FormBuilder(
+            key: formKey,
+            child: Column(
+              children: [
+                /* dropdown for the selection of the TOLC type */
+                FormBuilderDropdown(
+                  name: 'tolc_type', 
+                  decoration: const InputDecoration(
+                    labelText: 'Seleziona un TOLC',
+                    labelStyle: TextStyle(color: Colors.black),
                   ),
-                  FormBuilderSwitch(
-                    name: 'tolcCasa_enabled', 
-                    title: Text("Abilita TOLC@casa"),
-                    initialValue: false,
-                    decoration: const InputDecoration(border: InputBorder.none)
+                  initialValue: TOLCType.engineering,
+                  items: TOLCType.values.map((singleTolc) => 
+                          DropdownMenuItem(value:singleTolc, 
+                                            child: Text(singleTolc.name, style: const TextStyle(color: Colors.black)))
+                        ).toList()
+                ),
+                const SizedBox(height: 10),
+                /* switch to select which mode of TOLC
+                to enable on the preference research */
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: FormBuilderSwitch(
+                        name: 'tolcUni_enabled', 
+                        title: const Text("TOLC@uni", style: TextStyle(color: Colors.black)),
+                        initialValue: true,
+                        // Avvicina lo switch al testo
+                        controlAffinity: ListTileControlAffinity.leading,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      )
+                    ),
+                    Expanded(
+                      child: FormBuilderSwitch(
+                        name: 'tolcCasa_enabled', 
+                        title: const Text("TOLC@casa", style: TextStyle(color: Colors.black)),
+                        initialValue: false,
+                        // Avvicina lo switch al testo
+                        controlAffinity: ListTileControlAffinity.leading,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      )
+                    )
+                  ],
+                ),
+                /* dynamic input of universities */
+                const DynamicInputManager(fieldPrefix: 'dynamic_input_',),
+                const Divider(height: 32.0,),
+                /* buttons for the actions of the section */
+                IntrinsicWidth(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _sendForm(context, formKey), 
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[400],
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Aggiungi nuova preferenza"),
+                      ),
+                      const SizedBox(height: 12.0,), //space between buttons
+                      ElevatedButton(
+                        onPressed: () => _cancelForm(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[400],
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Annulla preferenza"),
+                      ),
+                    ]
                   )
-                ],
-              ),
-              /* dynamic input of universities */
-              const DynamicInputManager(fieldPrefix: 'dynamic_input_',),
-              const Divider(height: 24.0,),
-              /* buttons for the actions of the section */
-              ElevatedButton(
-                onPressed: () => _sendForm(context, formKey), 
-                child: Text("Aggiungi nuova preferenza"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green[400])
-              ),
-              ElevatedButton(
-                onPressed: () => _cancelForm(context),
-                child: Text("Annulla preferenza"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red[400])
-              )
-            ],
-          )
+                )
+              ],
+            )
+          ),
         ),
       ),
     );
@@ -106,7 +145,7 @@ class NewPreferenceSection extends StatelessWidget{
     has one element at least, otherwise it's not possible to
     make researches in the future */
     final universityList = form.entries
-        .where((entry) => entry.key.startsWith('custom_field_'))
+        .where((entry) => entry.key.startsWith('dynamic_input_'))
         .map((entry) => University(entry.value.toString()))
         .where((value) => value.name.trim().isNotEmpty)
         .toList();

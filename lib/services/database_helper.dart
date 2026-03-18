@@ -178,7 +178,10 @@ class DatabaseService{
       In this case there is no use to delete them or save them
       in another function, because they walk along with the preferences*/
       for(University currentUniversity in preference.universities){
-        await _database!.insert('Univerisity', currentUniversity.toMap());
+        await _database!.insert(
+          'University', 
+          currentUniversity.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore);
       }
     }catch(e){
       throw Exception('Error saving preference-university connections: $e');
@@ -306,7 +309,7 @@ class DatabaseService{
       result = await _database!.rawQuery(
         '''
           SELECT ID, tolcType, university, site, availablePlaces, endSubscription, assessmentDate, notifyDate, mode
-          FROM Result WHERE assessmentDate >= ?
+          FROM Result WHERE endSubscription >= ?
           ORDER BY notifyDate DESC
         ''',
         [DateTime.now().toIso8601String()]
