@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'database_helper.dart';
 import 'logger_utils.dart';
@@ -14,7 +15,7 @@ import '../classes/TOLCType.dart';
 
 /// Function to scrape the html of the page and get the elements
 /// containing the TOLC information
-Future<List<dom.Element>> scrapeHtml(Preference preference) async{
+Future<List<dom.Element>> _scrapeHtml(Preference preference) async{
   final url = Uri.parse(preference.tolcType.link); // establish the link
   /* try three times to get the elements */
   for(int i=0;i<3;i++){
@@ -41,7 +42,7 @@ Future<List<dom.Element>> scrapeHtml(Preference preference) async{
 
 /// Function to transform the html elements 
 /// into a list of results to be evaluated later
-List<Result> generateResults(Preference preference, List<dom.Element> elements){
+List<Result> _generateResults(Preference preference, List<dom.Element> elements){
   List<Result> results = []; // define the list of variables
   const String DATEFORMAT = "dd/MM/yyyy"; // define format of the date to be parsed
 
@@ -80,7 +81,7 @@ List<Result> generateResults(Preference preference, List<dom.Element> elements){
 /// Function to filter the result based on the preference
 /// so as to return the results wanted. 
 /// The function also tries to avoid duplicates with the previous results
-List<Result> filterResults(Preference preference, List<Result> totalResults, List<Result> previousResults){
+List<Result> _filterResults(Preference preference, List<Result> totalResults, List<Result> previousResults){
   /* start the cycle to control the different attributes */
   totalResults.removeWhere((res) {
     /* first control if the result found from the page is not present 
@@ -113,6 +114,19 @@ List<Result> filterResults(Preference preference, List<Result> totalResults, Lis
 /// to execute following a certain frequency. 
 /// It returns a boolean to indicate if the execution has been successful or not
 Future<bool> TOLC_finder_main() async {
+  /* get boolean values from the shared preferences
+  to control if actions can be done or are disable
+  due to settings change by the user */
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  bool notify_enabled = sharedPreferences.getBool('notify_enabled') ?? true;
+  bool search_enabled = sharedPreferences.getBool('search_enabled') ?? true;
+
+  /* if the research is not enabled
+  stop the funtion and return true */
+  if(!search_enabled){
+    return true;
+  }
+
   /* variable and lists initialization to
   avoid possible null errors due to exceptions */
   List<Preference> preferences = [];
@@ -148,21 +162,15 @@ Future<bool> TOLC_finder_main() async {
   /* start a cycle to see all the preferences
   and find possible matches */
   for(Preference currentPreference in preferences){
-    List<Result> currentResults = generateResults(currentPreference, await scrapeHtml(currentPreference));
+    List<Result> currentResults = _generateResults(currentPreference, await _scrapeHtml(currentPreference));
     if(currentResults.isEmpty)
       continue; // if no result has been found continue with the next
     
-    List<Result> finalResults = filterResults(currentPreference, currentResults, previousResults);
+    List<Result> finalResults = _filterResults(currentPreference, currentResults, previousResults);
 
     /* if the final result has produced some results
     put a notification for every message */
     for(Result singleResult in finalResults){
-      /* show the notification for the new result found */
-      await notification.showNotification(
-        title: "Nuovo ${singleResult.tolcType.name} disponibile!",
-        body: "${singleResult.university.name} il ${DateFormat('dd/MM/yyyy').format(singleResult.assessmentDate)}"
-      );
-
       /* try to save the result found for a maximum 
       of 3 times */
       for(int i=0;i<3;i++){
@@ -173,6 +181,15 @@ Future<bool> TOLC_finder_main() async {
           /* send a warning if the result has not been saved */
           logger.w("Error occured while saving the result ${singleResult.toString()}\nFollowing error reported: ${e}");
         }
+      }
+
+      /* show the notification for the new result found,
+      if the settings is enabled */
+      if(notify_enabled){
+        await notification.showNotification(
+          title: "Nuovo ${singleResult.tolcType.name} disponibile!",
+          body: "${singleResult.university.name} il ${DateFormat('dd/MM/yyyy').format(singleResult.assessmentDate)}"
+        );
       }
     }
   }
