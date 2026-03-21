@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importante
 import 'package:sqflite/sqflite.dart';
 
@@ -81,6 +82,14 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  /// Method to init the state of the application
+  /// and do operations for the execution of the page
+  @override
+  void initState(){
+    super.initState();
+    saveLastAccess(); // save the last access date and time
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -132,5 +141,14 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  /* function to upload the last_access
+  date and time in the shared prefernces */
+  Future<void> saveLastAccess() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance(); // get the local storage
+
+    sharedPreferences.setString('last_last_access', sharedPreferences.getString('last_access') ?? ''); // move the last access to the last last
+    sharedPreferences.setString('last_access', DateTime.now().toIso8601String()); // then update the last access with current date and time
   }
 }
