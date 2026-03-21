@@ -26,11 +26,7 @@ class NewPreferenceSection extends StatelessWidget{
     final formKey = GlobalKey<FormBuilderState>();
 
     return Theme(
-      data: Theme.of(context).copyWith(
-        // Rimuove il colore viola di default (Material 3) e usa il nero
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.black, primary: Colors.black),
-        textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black, displayColor: Colors.black),
-      ),
+      data: Theme.of(context),
       child: Scaffold(
         appBar: AppBar(title: const Text("Aggiungi preferenza")),
         body: SingleChildScrollView(
