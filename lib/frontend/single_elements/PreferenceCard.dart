@@ -121,121 +121,123 @@ class _PreferenceCardState extends State<PreferenceCard> {
                 /* selected universities */
                 /* if it's in view mode visualize only the
                 first  */
-                if(!_isEditing)
-                  ListTile(
-                    leading: Icon(Icons.school),
-                    title: Text("Università selezionate..."),
-                    subtitle: Text(
-                      /* Logic to create a bulleted list string:
-                        1. Take only the first 3 elements to keep the UI clean.
-                        2. Join them with a bullet separator.
-                        3. If there are more than 3 items, append '...' manually.
-                      */
-                      "${widget._preference.universities.take(3).map((e) => "• $e").join(" ")}${widget._preference.universities.length > 3 ? "  ..." : ""}",
-                      
-                      /* Standard Material handling for long text:
-                        - maxLines: 1 ensures the card height remains consistent.
-                        - ellipsis: adds '...' if a single item name is too long for the screen.
-                      */
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                /* add the list of inputs for of the universities */
-                else
-                  Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Università selezionate",
-                            style: Theme.of(context).textTheme.labelLarge,
+                Expanded(
+                  child: !_isEditing
+                    ? ListTile(
+                        leading: Icon(Icons.school),
+                        title: Text("Università selezionate..."),
+                        subtitle: Text(
+                          /* Logic to create a bulleted list string:
+                            1. Take only the first 3 elements to keep the UI clean.
+                            2. Join them with a bullet separator.
+                            3. If there are more than 3 items, append '...' manually.
+                          */
+                          "${widget._preference.universities.take(3).map((e) => "• ${e.name}").join(" ")}${widget._preference.universities.length > 3 ? "  ..." : ""}",
+                          
+                          /* Standard Material handling for long text:
+                            - maxLines: 1 ensures the card height remains consistent.
+                            - ellipsis: adds '...' if a single item name is too long for the screen.
+                          */
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8.0, // Gap between adjacent chips
-                            runSpacing: 4.0, // Gap between lines
-                            children: [
-                              // 1. Map existing universities to Editable InputChips
-                              ...widget._preference.universities.toList().asMap().entries.map((entry) {
-                                /* define the value and the index */
-                                int index = entry.key;
-                                University uni = entry.value;
+                        ),
+                      )
+                    /* add the list of inputs for of the universities */
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Università selezionate",
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8.0, // Gap between adjacent chips
+                              runSpacing: 4.0, // Gap between lines
+                              children: [
+                                // 1. Map existing universities to Editable InputChips
+                                ...widget._preference.universities.toList().asMap().entries.map((entry) {
+                                  /* define the value and the index */
+                                  int index = entry.key;
+                                  University uni = entry.value;
 
-                                return InputChip(
-                                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                                  label: IntrinsicWidth(
-                                    child: TextField(
-                                      // 'uni.name' if it's an object, just 'uni' if it's a string
-                                      controller: TextEditingController(text: uni.name)..selection = TextSelection.fromPosition(TextPosition(offset: uni.name.length)),
-                                      autofocus: false,
-                                      style: Theme.of(context).textTheme.bodyMedium,
-                                      decoration: const InputDecoration(
-                                        isDense: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 8),
-                                        border: InputBorder.none,
-                                        hintText: "Nome università",
+                                  return InputChip(
+                                    labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                                    label: IntrinsicWidth(
+                                      child: TextField(
+                                        // 'uni.name' if it's an object, just 'uni' if it's a string
+                                        controller: TextEditingController(text: uni.name)..selection = TextSelection.fromPosition(TextPosition(offset: uni.name.length)),
+                                        autofocus: false,
+                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        decoration: const InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                          border: InputBorder.none,
+                                          hintText: "Nome università",
+                                        ),
+                                        onSubmitted: (newValue) {
+                                          setState(() {
+                                            /* if the value is empty you
+                                            need to remove the university from the preference */
+                                            if(newValue.trim().isEmpty){
+                                              widget._preference.removeUniversitbyIndex(index);
+                                            }else{
+                                              uni.name = newValue.trim();
+                                              _universitySuggestions.add(University(newValue.trim()));
+                                            }
+                                            _changesHappened = true;
+                                          });
+                                        },
                                       ),
-                                      onSubmitted: (newValue) {
-                                        setState(() {
-                                          /* if the value is empty you
-                                          need to remove the university from the preference */
-                                          if(newValue.trim().isEmpty){
-                                            widget._preference.removeUniversitbyIndex(index);
-                                          }else{
-                                            uni.name = newValue.trim();
-                                            _universitySuggestions.add(University(newValue.trim()));
-                                          }
-                                          _changesHappened = true;
-                                        });
-                                      },
                                     ),
-                                  ),
-                                  onDeleted: () {
-                                    setState(() {
-                                      widget._preference.universities.remove(uni);
-                                      _changesHappened = true;
-                                    });
-                                  },
-                                  deleteIcon: const Icon(Icons.cancel, size: 18),
-                                );
-                              }),
+                                    onDeleted: () {
+                                      setState(() {
+                                        widget._preference.universities.remove(uni);
+                                        _changesHappened = true;
+                                      });
+                                    },
+                                    deleteIcon: const Icon(Icons.cancel, size: 18),
+                                  );
+                                }),
 
-                              // 2. The "Add" button
-                              ActionChip(
-                                avatar: const Icon(Icons.add, size: 18),
-                                label: const Text("Add university"),
-                                onPressed: () => _showAddUniversityDialog(context),
-                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                              ),
-                            ],
-                          ),
-                        ],
+                                // 2. The "Add" button
+                                ActionChip(
+                                  avatar: const Icon(Icons.add, size: 18),
+                                  label: const Text("Add university"),
+                                  onPressed: () => _showAddUniversityDialog(context),
+                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                ,
+                ),
                 /* section to specify whether 
                 TOLC@uni and TOLC@casa have been enabled  */
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      leading: widget._preference.TOLCuni ? 
-                        Icon(Icons.check, color: Colors.green,) :
-                        Icon(Icons.close, color: Colors.red),
-                      title: Text("TOLC@uni")
-                    ),
-                    ListTile(
-                      leading: widget._preference.TOLCcasa ? 
-                        Icon(Icons.check, color: Colors.green,) :
-                        Icon(Icons.close, color: Colors.red),
-                      title: Text("TOLC@casa")
-                    )
-                  ],
+                IntrinsicWidth(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        leading: widget._preference.TOLCuni ? 
+                          Icon(Icons.check, color: Colors.green,) :
+                          Icon(Icons.close, color: Colors.red),
+                        title: Text("TOLC@uni")
+                      ),
+                      ListTile(
+                        leading: widget._preference.TOLCcasa ? 
+                          Icon(Icons.check, color: Colors.green,) :
+                          Icon(Icons.close, color: Colors.red),
+                        title: Text("TOLC@casa")
+                      )
+                    ],
+                  ),
                 )
               ],
             )
