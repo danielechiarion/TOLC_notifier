@@ -16,6 +16,7 @@ class Preference {
   : ID = ID ?? -1, _universities = universities ?? {};
 
   /// define hash method
+  @override
   int get hashCode => tolcType.hashCode ^ TOLCcasa.hashCode ^ tolcType.hashCode;
 
   /// equals for the class preference

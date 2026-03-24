@@ -16,12 +16,17 @@ class PreferenceCard extends StatefulWidget {
   final Preference _preference;
   final Set<University> _universityList;
   final Future<void> Function(Preference preference) deleteFunction;
+  final VoidCallback onUpdate;
 
   /// Constructor for the PreferenceCard.
   /// Note: Variables that change (state) are moved to the _State class.
-  const PreferenceCard({super.key, required this.deleteFunction, 
-  required Preference preference, required Set<University> universities}) 
-      : _preference = preference, _universityList = universities;
+  const PreferenceCard({
+    super.key, 
+    required this.deleteFunction, 
+    required this.onUpdate,
+    required Preference preference, 
+    required Set<University> universities
+  }) : _preference = preference, _universityList = universities;
 
   @override
   State<PreferenceCard> createState() => _PreferenceCardState();
@@ -33,26 +38,23 @@ class _PreferenceCardState extends State<PreferenceCard> {
   /* variable to express a possible change in the UI mode */
   bool _isEditing = false; // variable to display if edit mode is enabled
   bool _changesHappened = false; // variable to display if any changes in edit mode have been made
-  Set<University> _universitySuggestions = {};
+
+  /* local copy of universities — this is what drives the UI rebuild */
+  late Set<University> _localUniversities;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    _universitySuggestions = widget._universityList;
+    _localUniversities = Set.from(widget._preference.universities);
   }
 
-  /// Function to return the single element of the card
-  /// with both the visual and editable part
   @override
-  Widget build(BuildContext context){
-    /* We use the 'create' logic directly inside the build method 
-       as it is the standard practice for Flutter Widgets */
+  Widget build(BuildContext context) {
     return Card(
-      /* light background color took from the theme */
       color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20), // more rounded angles for personal look
+        borderRadius: BorderRadius.circular(20),
         side: BorderSide(
           color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
           width: 1,
@@ -65,14 +67,11 @@ class _PreferenceCardState extends State<PreferenceCard> {
           children: [
             Row(
               children: [
-                /* distinctive icon for preference */
                 CircleAvatar(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   child: const Icon(Icons.star, color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 12),
-                
-                /* title of the preference - Wrapped in Expanded to prevent overflow */
                 Expanded(
                   child: Text(
                     "${widget._preference.ID} - ${widget._preference.tolcType.name}",
@@ -80,162 +79,89 @@ class _PreferenceCardState extends State<PreferenceCard> {
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
-                    softWrap: true,
-                    overflow: TextOverflow.visible,
                   ),
                 ),
-                
-                /* section of the buttons for editing and confirming changes */
                 IconButton(
                   icon: Icon(_isEditing ? Icons.check : Icons.edit),
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () async {
-                    /* if changes have reported 
-                    save the preference into the database */
-                    if(_changesHappened){
+                    /* If editing is finished and changes happened, save to DB */
+                    if (_isEditing && _changesHappened) {
                       await _updatePreference(widget._preference);
+                      widget.onUpdate(); // Notify parent page to refresh data
                     }
-                    
-                    /* Notifies the framework that the internal state has changed */
-                    setState(() {
-                      _isEditing = !_isEditing;
-                    });
+                    setState(() { _isEditing = !_isEditing; });
                   },
                 ),
-                
-                /* optional delete button that appears only during editing */
                 if (_isEditing)
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     color: Theme.of(context).colorScheme.error,
                     onPressed: () async {
                       await widget.deleteFunction(widget._preference);
+                      widget.onUpdate(); // Refresh list after deletion
                     },
                   ),
               ],
             ),
-            const SizedBox(height: 24),
-            
+            const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /* selected universities */
-                /* if it's in view mode visualize only the
-                first  */
                 Expanded(
                   child: !_isEditing
                     ? ListTile(
-                        leading: Icon(Icons.school),
-                        title: Text("Università selezionate..."),
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.school),
+                        title: const Text("Università selezionate"),
                         subtitle: Text(
-                          /* Logic to create a bulleted list string:
-                            1. Take only the first 3 elements to keep the UI clean.
-                            2. Join them with a bullet separator.
-                            3. If there are more than 3 items, append '...' manually.
-                          */
-                          "${widget._preference.universities.take(3).map((e) => "• ${e.name}").join(" ")}${widget._preference.universities.length > 3 ? "  ..." : ""}",
-                          
-                          /* Standard Material handling for long text:
-                            - maxLines: 1 ensures the card height remains consistent.
-                            - ellipsis: adds '...' if a single item name is too long for the screen.
-                          */
+                          _localUniversities.isEmpty 
+                            ? "Nessuna università"
+                            : _localUniversities.map((e) => "• ${e.name}").join(" "),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
                         ),
                       )
-                    /* add the list of inputs for of the universities */
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Università selezionate",
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8.0, // Gap between adjacent chips
-                              runSpacing: 4.0, // Gap between lines
-                              children: [
-                                // 1. Map existing universities to Editable InputChips
-                                ...widget._preference.universities.toList().asMap().entries.map((entry) {
-                                  /* define the value and the index */
-                                  int index = entry.key;
-                                  University uni = entry.value;
-
-                                  return InputChip(
-                                    labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                                    label: IntrinsicWidth(
-                                      child: TextField(
-                                        // 'uni.name' if it's an object, just 'uni' if it's a string
-                                        controller: TextEditingController(text: uni.name)..selection = TextSelection.fromPosition(TextPosition(offset: uni.name.length)),
-                                        autofocus: false,
-                                        style: Theme.of(context).textTheme.bodyMedium,
-                                        decoration: const InputDecoration(
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                                          border: InputBorder.none,
-                                          hintText: "Nome università",
-                                        ),
-                                        onSubmitted: (newValue) {
-                                          setState(() {
-                                            /* if the value is empty you
-                                            need to remove the university from the preference */
-                                            if(newValue.trim().isEmpty){
-                                              widget._preference.removeUniversitbyIndex(index);
-                                            }else{
-                                              uni.name = newValue.trim();
-                                              _universitySuggestions.add(University(newValue.trim()));
-                                            }
-                                            _changesHappened = true;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    onDeleted: () {
-                                      setState(() {
-                                        widget._preference.universities.remove(uni);
-                                        _changesHappened = true;
-                                      });
-                                    },
-                                    deleteIcon: const Icon(Icons.cancel, size: 18),
-                                  );
-                                }),
-
-                                // 2. The "Add" button
-                                ActionChip(
-                                  avatar: const Icon(Icons.add, size: 18),
-                                  label: const Text("Add university"),
-                                  onPressed: () => _showAddUniversityDialog(context),
-                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Università", style: Theme.of(context).textTheme.labelLarge),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 4.0,
+                            children: [
+                              /* Display existing universities as removable chips */
+                              ..._localUniversities.map((uni) {
+                                return InputChip(
+                                  label: Text(uni.name),
+                                  onDeleted: () {
+                                    setState(() {
+                                      _localUniversities.remove(uni);
+                                      widget._preference.universities.remove(uni);
+                                      _changesHappened = true;
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                              /* Button to trigger the add university dialog */
+                              ActionChip(
+                                avatar: const Icon(Icons.add, size: 18),
+                                label: const Text("Aggiungi"),
+                                onPressed: () => _showAddUniversityDialog(context),
+                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                 ),
-                /* section to specify whether 
-                TOLC@uni and TOLC@casa have been enabled  */
+                /* TOLC Type Indicators */
                 IntrinsicWidth(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      ListTile(
-                        leading: widget._preference.TOLCuni ? 
-                          Icon(Icons.check, color: Colors.green,) :
-                          Icon(Icons.close, color: Colors.red),
-                        title: Text("TOLC@uni")
-                      ),
-                      ListTile(
-                        leading: widget._preference.TOLCcasa ? 
-                          Icon(Icons.check, color: Colors.green,) :
-                          Icon(Icons.close, color: Colors.red),
-                        title: Text("TOLC@casa")
-                      )
+                      _buildTolcIndicator("TOLC@uni", widget._preference.TOLCuni),
+                      _buildTolcIndicator("TOLC@casa", widget._preference.TOLCcasa),
                     ],
                   ),
                 )
@@ -247,73 +173,83 @@ class _PreferenceCardState extends State<PreferenceCard> {
     );
   }
 
-  /// Function to add continuosly an input dialog
-  /// to add every single time a new univesity
-  /// in the editing mode
-  void _showAddUniversityDialog(BuildContext context) {
-    String newUni = "";
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Add University"),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: "Enter university name",
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            newUni = value;
-            _changesHappened = true;
-          },
-          onSubmitted: (value) {
-            if (value.trim().isNotEmpty) {
-              setState(() {
-                widget._preference.universities.add(University(value.trim()));
-                
-              });
-              Navigator.pop(context);
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (newUni.trim().isNotEmpty) {
-                setState(() {
-                  widget._preference.universities.add(University(newUni.trim()));
-                  _universitySuggestions.add(University(newUni.trim()));
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: const Text("Add"),
-          ),
+  /// Helper widget to build the TOLC mode indicators
+  Widget _buildTolcIndicator(String label, bool active) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(active ? Icons.check_circle : Icons.cancel, 
+               color: active ? Colors.green : Colors.red, size: 16),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 12)),
         ],
       ),
+    );
+  }
+
+  /// Function to show a dialog for adding a new university name
+  void _showAddUniversityDialog(BuildContext context) {
+    String newUniName = "";
+
+    void addUniversity(String value, NavigatorState navigator) {
+      final trimmed = value.trim();
+      if (trimmed.isNotEmpty) {
+        navigator.pop(); // Close dialog first
+        final newUni = University(trimmed);
+        /* Update both the local state (triggers rebuild) and the preference object (for DB save) */
+        setState(() {
+          _localUniversities.add(newUni);
+          widget._preference.universities.add(newUni);
+          _changesHappened = true;
+        });
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        return AlertDialog(
+          title: const Text("Aggiungi Università"),
+          content: TextField(
+            autofocus: true,
+            decoration: const InputDecoration(hintText: "Nome università"),
+            onChanged: (value) => newUniName = value,
+            // Handle "Enter" key on keyboard
+            onSubmitted: (value) => addUniversity(value, navigator),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => navigator.pop(),
+              child: const Text("Annulla"),
+            ),
+            ElevatedButton(
+              onPressed: () => addUniversity(newUniName, navigator),
+              child: const Text("Aggiungi"),
+            ),
+          ],
+        );
+      },
     );
   }
 
   /// Function to update an existing preference 
   /// during the editing mode 
   /// using the connection with the database
-  Future<void> _updatePreference(Preference preference) async{
+  Future<void> _updatePreference(Preference preference) async {
     /* create connection with the database */
     DatabaseService database = DatabaseService.instance;
     
-    try{
+    try {
       await database.initialize();
       await database.updatePreference(preference); // update the preference
-    }catch(e){
+      _changesHappened = false; // reset the change tracker after successful save
+    } catch (e) {
       logger.e("Error while updating the preference: $e");
-    }finally{
+    } finally {
       await database.close(); // close the database
     }
-
-    _changesHappened = false; // update the boolean at the end of the change
   }
 }

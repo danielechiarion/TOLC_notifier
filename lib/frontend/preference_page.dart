@@ -23,10 +23,12 @@ class PreferencePage extends StatefulWidget{
 /* class to handle changes in the 
 preference list */
 class _PreferencePageState extends State<PreferencePage>{
-  Set<Preference>? _preferenceList = {}; // create local list for the preference one
-  Set<University>? _universityList = {}; // create local list for the university
+  // Use List instead of Set: Set deduplicates based on hashCode/==,
+  // so if Preference doesn't override them, all items collapse to one.
+  List<Preference> _preferenceList = [];
+  Set<University> _universityList = {};
 
-  /// Fuction to init the preference page
+  /// Function to init the preference page
   /// and the state with the initial data
   @override
   void initState(){
@@ -34,7 +36,9 @@ class _PreferencePageState extends State<PreferencePage>{
     _loadData();
   }
 
-  /// Load preference and university data asynchronously
+  /// Load preference and university data asynchronously.
+  /// NOTE: only called on first load — NOT on every card update,
+  /// to avoid destroying card state (editing mode, local changes).
   Future<void> _loadData() async {
     final DatabaseService database = DatabaseService.instance;
 
@@ -44,7 +48,7 @@ class _PreferencePageState extends State<PreferencePage>{
       final universities = await database.getUniversities();
       
       setState(() {
-        _preferenceList = Set.from(preferences);
+        _preferenceList = List.from(preferences); // List preserves all items
         _universityList = Set.from(universities);
       });
     } catch (e) {
@@ -61,8 +65,8 @@ class _PreferencePageState extends State<PreferencePage>{
     return Scaffold(
       /* list of the existing preferences */
       body: SingleChildScrollView(
-        child:Padding(
-          padding: EdgeInsets.all(16.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
               Row(
@@ -71,17 +75,25 @@ class _PreferencePageState extends State<PreferencePage>{
                   Text("Le tue preferenze",
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.secondary, // Colore coerente col brand
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                   )
                 ],
               ),
-              const SizedBox(height: 24,),
-              /* in this case the method build of the private class of the 
-              PreferenceCardState is already linked to the PreferenceCard,
-              so just need to invoke the constructor to make the widget appear */
+              const SizedBox(height: 24),
               Column(
-                children: _preferenceList!.map((item) => PreferenceCard(deleteFunction: _deletePreference, preference: item, universities: _universityList!,)).toList(),
+                children: _preferenceList.map((item) => PreferenceCard(
+                  // ValueKey ensures Flutter reuses the correct card state
+                  // when the list changes, instead of reassigning states by position.
+                  key: ValueKey(item.ID),
+                  deleteFunction: _deletePreference, 
+                  // onUpdate no longer reloads all data from DB — the card
+                  // manages its own local state. This callback is kept for
+                  // future use (e.g. showing a snackbar from the parent).
+                  onUpdate: () {},
+                  preference: item, 
+                  universities: _universityList,
+                )).toList(),
               )
             ],
           ),
@@ -92,7 +104,7 @@ class _PreferencePageState extends State<PreferencePage>{
       and return from the section the result */
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
-        label: Text("Aggiungi preferenza"),
+        label: const Text("Aggiungi preferenza"),
         backgroundColor: Colors.greenAccent,
         onPressed: _addPreference,
       ),
@@ -107,14 +119,21 @@ class _PreferencePageState extends State<PreferencePage>{
 
     try{
       await database.initialize();
-      if(await database.deletePreference(preference)){
+      if(!await database.deletePreference(preference)){
         logger.w("Could not delete the preference from the database");
       }
     }catch(e){
       logger.e("Error while trying to delete a preference: $e");
     }finally{
-      await database.close(); // try every time to close the connection
+      await database.close();
     }
+
+    /* delete the preference from the list so as to update the page */
+    setState(() {
+      _preferenceList = _preferenceList
+            .where((item) => item != preference)
+            .toList();
+    });
   }
 
   /* function to add a new preference or manage
@@ -122,8 +141,8 @@ class _PreferencePageState extends State<PreferencePage>{
   with the toast */
   Future<void> _addPreference() async{
     /* get the preference from the section */
-    Preference ?preference = await Navigator.push(context, 
-                                MaterialPageRoute(builder: (context) => NewPreferenceSection(universities: _universityList!)));
+    Preference? preference = await Navigator.push(context, 
+                                MaterialPageRoute(builder: (context) => NewPreferenceSection(universities: _universityList)));
 
     /* get the value and understand if 
     it's possible to proceed or not */
@@ -134,20 +153,12 @@ class _PreferencePageState extends State<PreferencePage>{
 
     /* add preference to the list */
     setState(() {
-      _preferenceList = {..._preferenceList!, preference};
+      _preferenceList = [..._preferenceList, preference];
     });
     AppToast.show(context, "Preferenza aggiunta nell'app", ToastType.success);
-    /* instantiate database and save the preference */
-    /* initialization of the database */
-    DatabaseService database = DatabaseService.instance;
 
-    /* delete the preference from the list
-    so as to update the page */
-    setState(() {
-      _preferenceList = _preferenceList!
-            .where((item) => item != preference)
-            .toSet();
-    });
+    /* instantiate database and save the preference */
+    DatabaseService database = DatabaseService.instance;
 
     try{
       await database.initialize();
@@ -159,7 +170,7 @@ class _PreferencePageState extends State<PreferencePage>{
       logger.e("Error while trying to save a preference: $e");
       AppToast.show(context, "Errore durante il salvataggio preferenza nel DB: $e", ToastType.error);
     }finally{
-      await database.close(); // try every time to close the connection
+      await database.close();
     }
   }
 }
