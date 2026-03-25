@@ -42,7 +42,15 @@ class DatabaseService{
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _defineTables);
+    return await openDatabase(
+      path, 
+      version: 1, 
+      onCreate: _defineTables,
+      /* to activate the foreign keys */
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      }
+    );
   }
 
   /// Public method to init the database,

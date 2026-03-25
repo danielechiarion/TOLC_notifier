@@ -129,11 +129,7 @@ class _PreferencePageState extends State<PreferencePage>{
     }
 
     /* delete the preference from the list so as to update the page */
-    setState(() {
-      _preferenceList = _preferenceList
-            .where((item) => item != preference)
-            .toList();
-    });
+    await _loadData();
   }
 
   /* function to add a new preference or manage
@@ -151,12 +147,6 @@ class _PreferencePageState extends State<PreferencePage>{
       return;
     }
 
-    /* add preference to the list */
-    setState(() {
-      _preferenceList = [..._preferenceList, preference];
-    });
-    AppToast.show(context, "Preferenza aggiunta nell'app", ToastType.success);
-
     /* instantiate database and save the preference */
     DatabaseService database = DatabaseService.instance;
 
@@ -172,5 +162,9 @@ class _PreferencePageState extends State<PreferencePage>{
     }finally{
       await database.close();
     }
+
+    /* add preference to the list */
+    await _loadData(); // reload the data from the database
+    AppToast.show(context, "Preferenza aggiunta nell'app", ToastType.success);
   }
 }
