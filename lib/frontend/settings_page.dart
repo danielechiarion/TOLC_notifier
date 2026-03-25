@@ -35,7 +35,12 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Impostazioni")),
+      appBar: AppBar(title: Text("Impostazioni",
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    )),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
