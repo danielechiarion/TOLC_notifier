@@ -37,14 +37,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: "^0.13.1" # icons
 
 flutter:
   uses-material-design: true
 
-# icon of the application
-dev_dependencies:
-  flutter_launcher_icons: "^0.13.1"
-
+# configuring app icon
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
