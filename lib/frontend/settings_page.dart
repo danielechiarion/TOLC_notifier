@@ -39,14 +39,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    )),
+                      )
+                    ),
+                    centerTitle: true,
+                    ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             SwitchListTile(
               title: const Text("Abilita ricerca"),
+              activeTrackColor: Colors.limeAccent,
               value: searchEnabled,
               onChanged: (value) {
                 setState(() {
@@ -57,6 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             SwitchListTile(
               title: const Text("Abilita notifiche"),
+              activeTrackColor: Colors.limeAccent,
               value: notifyEnabled,
               onChanged: (value) {
                 setState(() {
