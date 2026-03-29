@@ -164,6 +164,16 @@ class DatabaseService{
       return false;
 
     try{
+      /* then save the univerisities into the specified table.
+      In this case there is no use to delete them or save them
+      in another function, because they walk along with the preferences*/
+      for(University currentUniversity in preference.universities){
+        await _database!.insert(
+          'University', 
+          currentUniversity.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore);
+      }
+
       /* update all the existing connections to the database
       using a transaction to avoid unconsistency. 
       Making different queries can cause problems if the app crash
@@ -181,16 +191,6 @@ class DatabaseService{
           });
         }
       });
-
-      /* then save the univerisities into the specified table.
-      In this case there is no use to delete them or save them
-      in another function, because they walk along with the preferences*/
-      for(University currentUniversity in preference.universities){
-        await _database!.insert(
-          'University', 
-          currentUniversity.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.ignore);
-      }
     }catch(e){
       throw Exception('Error saving preference-university connections: $e');
     }
@@ -273,6 +273,10 @@ class DatabaseService{
 
         /* then save all the updated connections to the database */
         for(University currentUniversity in preference.universities){
+          await txn.insert('University', {
+            'name': currentUniversity.name
+          }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
           await txn.insert('Preference_University', {
             'preference':preference.ID,
             'university':currentUniversity.name

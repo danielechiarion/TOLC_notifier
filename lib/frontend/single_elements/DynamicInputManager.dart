@@ -87,8 +87,9 @@ class _DynamicInputManagerState extends State<DynamicInputManager> {
                             TextEditingValue is required to initialize the internal controller.
                           */
                           initialValue: TextEditingValue(text: initialVal),
-                          /* set parameter to see the univerisity name for
-                          each university */
+                          /* Set parameter to display the university name
+                            as the label for each suggestion in the dropdown.
+                          */
                           displayStringForOption: (University university) => university.name,
                           optionsBuilder: (TextEditingValue textEditingValue) {
                             /* Logic to filter suggestions. 
@@ -97,8 +98,9 @@ class _DynamicInputManagerState extends State<DynamicInputManager> {
                             if (textEditingValue.text.isEmpty) {
                               return const Iterable<University>.empty();
                             }
-                            /* if the list of the university suggestions
-                            is null or empty return an empty list */
+                            /* If the list of the university suggestions
+                              is null or empty return an empty list.
+                            */
                             if(widget.universitySuggestions == null || widget.universitySuggestions!.isEmpty){
                               return const Iterable<University>.empty();
                             }
@@ -111,8 +113,9 @@ class _DynamicInputManagerState extends State<DynamicInputManager> {
                           },
 
                           onSelected: (University selection) {
-                            /* update the FormFielBuilder state
-                            directly to make the change appear */
+                            /* Updates the FormBuilderField state directly
+                              to make the selected value available on form save.
+                            */
                             field.didChange(selection.name);
 
                             /* Updates the local state when a suggestion is clicked.
@@ -134,6 +137,23 @@ class _DynamicInputManagerState extends State<DynamicInputManager> {
                               controller: textController,
                               focusNode: focusNode,
                               onSubmitted: (value) => onFieldSubmitted(),
+                              /* Syncs the typed value with the FormBuilderField state
+                                on every keystroke, allowing free-text input in addition
+                                to suggestion selection.
+                              */
+                              onChanged: (value) {
+                                field.didChange(value);
+
+                                /* Keeps the _fields list in sync with manually
+                                  typed text, mirroring the behaviour of onSelected.
+                                */
+                                setState(() {
+                                  int idx = _fields.indexWhere((e) => e.key == currentId);
+                                  if (idx != -1) {
+                                    _fields[idx] = MapEntry(currentId, value);
+                                  }
+                                });
+                              },
                               decoration: InputDecoration(
                                 labelText: 'University #${index + 1}',
                                 border: const OutlineInputBorder(),
