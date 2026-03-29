@@ -16,7 +16,7 @@ class University{
   /// Override of equal method for the same name
   @override
   bool operator ==(Object other){
-    return other is University && other.name == name;
+    return other is University && other.name.toLowerCase() == name.toLowerCase();
   }
 
   /// Override of hash method

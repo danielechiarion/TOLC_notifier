@@ -40,12 +40,10 @@ class _NavigationExampleState extends State<NavigationExample> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-
-      /* wait until results are loaded */
-      if (!_initialized) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      }
+    /* wait until results are loaded */
+    if (!_initialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       bottomNavigationBar: NavigationBar(

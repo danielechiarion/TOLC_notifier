@@ -9,11 +9,13 @@ import '../../classes/University.dart';
 class DynamicInputManager extends StatefulWidget {
   final String fieldPrefix;
   final Set<University>? initialValues; // New: List of existing data
+  final Set<University>? universitySuggestions; // suggestions for university
 
-  const DynamicInputManager({
+  DynamicInputManager({
     super.key, 
     this.fieldPrefix = 'custom_field_',
-    this.initialValues
+    this.initialValues,
+    this.universitySuggestions
   });
 
   @override
@@ -76,21 +78,74 @@ class _DynamicInputManagerState extends State<DynamicInputManager> {
               child: Row(
                 children: [
                   Expanded(
-                    child: FormBuilderTextField(
+                    child: FormBuilderField<String>(
                       name: '${widget.fieldPrefix}$currentId',
-                      initialValue: initialVal, // Sets the existing value
-                      decoration: InputDecoration(
-                        labelText: 'Field #${index + 1}',
-                        border: const OutlineInputBorder(),
-                        // Adds a clear button for better UX
-                        suffixIcon: initialVal.isNotEmpty 
-                          ? const Icon(Icons.edit, size: 16) 
-                          : null,
-                      ),
-                    ),
+                      initialValue: initialVal,
+                      builder: (FormFieldState<String?> field){
+                        return Autocomplete<University>(
+                          /* Sets the default text in the field using the existing data.
+                            TextEditingValue is required to initialize the internal controller.
+                          */
+                          initialValue: TextEditingValue(text: initialVal),
+                          /* set parameter to see the univerisity name for
+                          each university */
+                          displayStringForOption: (University university) => university.name,
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            /* Logic to filter suggestions. 
+                              Returns an empty list if the input is empty.
+                            */
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<University>.empty();
+                            }
+                            /* if the list of the university suggestions
+                            is null or empty return an empty list */
+                            if(widget.universitySuggestions == null || widget.universitySuggestions!.isEmpty){
+                              return const Iterable<University>.empty();
+                            }
+
+                            return widget.universitySuggestions!.where((University singleUniversity) {
+                              return singleUniversity.name.toLowerCase().contains(
+                                    textEditingValue.text.toLowerCase(),
+                                  );
+                            });
+                          },
+
+                          onSelected: (University selection) {
+                            /* update the FormFielBuilder state
+                            directly to make the change appear */
+                            field.didChange(selection.name);
+
+                            /* Updates the local state when a suggestion is clicked.
+                              Ensures the _fields list is kept in sync with the UI.
+                            */
+                            setState(() {
+                              int idx = _fields.indexWhere((e) => e.key == currentId);
+                              if (idx != -1) {
+                                _fields[idx] = MapEntry(currentId, selection.name);
+                              }
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+                            /* Customizes the appearance of the input field.
+                              The textController and focusNode are provided by the Autocomplete widget.
+                            */
+                            return TextField(
+                              controller: textController,
+                              focusNode: focusNode,
+                              onSubmitted: (value) => onFieldSubmitted(),
+                              decoration: InputDecoration(
+                                labelText: 'University #${index + 1}',
+                                border: const OutlineInputBorder(),
+                                suffixIcon: const Icon(Icons.school_outlined, size: 20),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    )
                   ),
                   const SizedBox(width: 10),
-                  // Delete Button
                   IconButton(
                     onPressed: () => _removeField(currentId),
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
@@ -105,7 +160,7 @@ class _DynamicInputManagerState extends State<DynamicInputManager> {
         OutlinedButton.icon(
           onPressed: _addField,
           icon: const Icon(Icons.add),
-          label: const Text('Add Item'),
+          label: const Text('Aggiungi univerisità'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(50),
           ),

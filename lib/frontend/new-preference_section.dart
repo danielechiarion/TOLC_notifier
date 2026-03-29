@@ -12,12 +12,12 @@ import 'single_elements/Toast.dart';
 /// and returning the result to the page
 class NewPreferenceSection extends StatelessWidget{
   /* define attributes of the class */
-  final Set<University> _univeritySuggestions;
+  final Set<University> _universitySuggestions;
 
   /// Constructor of the class extending the 
   /// stateless widget
   const NewPreferenceSection({super.key, required Set<University> universities}):
-  _univeritySuggestions = universities;
+  _universitySuggestions = universities;
 
   @override
   Widget build(BuildContext context){
@@ -83,7 +83,7 @@ class NewPreferenceSection extends StatelessWidget{
                   ],
                 ),
                 /* dynamic input of universities */
-                const DynamicInputManager(fieldPrefix: 'dynamic_input_',),
+                DynamicInputManager(fieldPrefix: 'dynamic_input_', universitySuggestions: _universitySuggestions,),
                 const Divider(height: 32.0,),
                 /* buttons for the actions of the section */
                 IntrinsicWidth(
