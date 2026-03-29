@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../../classes/Preference.dart';
 import '../../classes/University.dart';
 
 import '../../services/database_helper.dart';
 import '../../services/logger_utils.dart';
+
+import 'DynamicInputManager.dart';
+import 'Toast.dart';
 
 /// Class to display the preference configured
 /// which could be changed during the configuration.
@@ -37,10 +41,13 @@ class PreferenceCard extends StatefulWidget {
 class _PreferenceCardState extends State<PreferenceCard> {
   /* variable to express a possible change in the UI mode */
   bool _isEditing = false; // variable to display if edit mode is enabled
-  bool _changesHappened = false; // variable to display if any changes in edit mode have been made
 
   /* local copy of universities — this is what drives the UI rebuild */
   late Set<University> _localUniversities;
+
+  /* define the form builder 
+  key for the editing mode */
+  final formKey = GlobalKey<FormBuilderState>();
 
   @override
   void initState() {
@@ -85,12 +92,53 @@ class _PreferenceCardState extends State<PreferenceCard> {
                   icon: Icon(_isEditing ? Icons.check : Icons.edit),
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () async {
-                    /* If editing is finished and changes happened, save to DB */
-                    if (_isEditing && _changesHappened) {
-                      await _updatePreference(widget._preference);
-                      widget.onUpdate(); // Notify parent page to refresh data
+                    if(_isEditing){
+                      bool hasChanged = false;
+
+                      /* get the list of values from the form and compare them
+                      with the list already present in the preference */
+                      /* save the state of the form and control if it's accessible */
+                      formKey.currentState?.save();
+                      if(!(formKey.currentState?.validate() ?? false)){
+                        AppToast.show(context, "Non è stato possibile validare il form", ToastType.fatal);
+                        return;
+                      }
+                      Map<String, dynamic> form = formKey.currentState!.value;
+                      /* then ge the list of universities and control if it's 
+                      empty. In that case launch a toast */
+                      final universityList = form.entries
+                          .where((entry) => entry.key.startsWith('dynamic_input_'))
+                          .map((entry) => University(entry.value.toString()))
+                          .where((value) => value.name.trim().isNotEmpty)
+                          .toSet();
+                      if(universityList.isEmpty){
+                        AppToast.show(context, "Seleziona almeno un'univeristà in cui effettuare la ricerca", ToastType.error);
+                        return;
+                      }
+
+                      /* then establishing is changes have been made
+                      on the preference, so as to save them in the database */
+                      hasChanged = universityList.length != widget._preference.universities.length ||
+                        !widget._preference.universities.containsAll(universityList);
+                      
+                      if(hasChanged){
+                        widget._preference.updateUniversities(universityList);
+                        widget.onUpdate(); // Notify parent page to refresh data
+
+                        _updatePreference(widget._preference);
+
+                        /* set the new local list of 
+                        universities to display them in the card */
+                        setState(() {
+                          _localUniversities = Set.from(universityList);
+                        });
+                      }
                     }
-                    setState(() { _isEditing = !_isEditing; });
+
+                    /* reset some variables */
+                    setState(() {
+                      _isEditing = !_isEditing; 
+                    });
                   },
                 ),
                 if (_isEditing)
@@ -131,26 +179,14 @@ class _PreferenceCardState extends State<PreferenceCard> {
                             spacing: 8.0,
                             runSpacing: 4.0,
                             children: [
-                              /* Display existing universities as removable chips */
-                              ..._localUniversities.map((uni) {
-                                return InputChip(
-                                  label: Text(uni.name),
-                                  onDeleted: () {
-                                    setState(() {
-                                      _localUniversities.remove(uni);
-                                      widget._preference.universities.remove(uni);
-                                      _changesHappened = true;
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                              /* Button to trigger the add university dialog */
-                              ActionChip(
-                                avatar: const Icon(Icons.add, size: 18),
-                                label: const Text("Aggiungi"),
-                                onPressed: () => _showAddUniversityDialog(context),
-                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                              ),
+                              FormBuilder(
+                                key: formKey,
+                                child: DynamicInputManager(
+                                  fieldPrefix: 'dynamic_input_',
+                                  initialValues: widget._preference.universities, 
+                                  universitySuggestions: widget._universityList,
+                                )
+                              )
                             ],
                           ),
                         ],
@@ -189,52 +225,6 @@ class _PreferenceCardState extends State<PreferenceCard> {
     );
   }
 
-  /// Function to show a dialog for adding a new university name
-  void _showAddUniversityDialog(BuildContext context) {
-    String newUniName = "";
-
-    void addUniversity(String value, NavigatorState navigator) {
-      final trimmed = value.trim();
-      if (trimmed.isNotEmpty) {
-        navigator.pop(); // Close dialog first
-        final newUni = University(trimmed);
-        /* Update both the local state (triggers rebuild) and the preference object (for DB save) */
-        setState(() {
-          _localUniversities.add(newUni);
-          widget._preference.universities.add(newUni);
-          _changesHappened = true;
-        });
-      }
-    }
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        final navigator = Navigator.of(dialogContext);
-        return AlertDialog(
-          title: const Text("Aggiungi Università"),
-          content: TextField(
-            autofocus: true,
-            decoration: const InputDecoration(hintText: "Nome università"),
-            onChanged: (value) => newUniName = value,
-            // Handle "Enter" key on keyboard
-            onSubmitted: (value) => addUniversity(value, navigator),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => navigator.pop(),
-              child: const Text("Annulla"),
-            ),
-            ElevatedButton(
-              onPressed: () => addUniversity(newUniName, navigator),
-              child: const Text("Aggiungi"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   /// Function to update an existing preference 
   /// during the editing mode 
   /// using the connection with the database
@@ -245,7 +235,6 @@ class _PreferenceCardState extends State<PreferenceCard> {
     try {
       await database.initialize();
       await database.updatePreference(preference); // update the preference
-      _changesHappened = false; // reset the change tracker after successful save
     } catch (e) {
       logger.e("Error while updating the preference: $e");
     } finally {

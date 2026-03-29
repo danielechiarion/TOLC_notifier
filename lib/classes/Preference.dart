@@ -55,8 +55,15 @@ class Preference {
 
   /// alternative method to remove from the university
   /// using an index 
-  void removeUniversitbyIndex(int index){
+  void removeUniversitybyIndex(int index){
     _universities.toList().removeAt(index);
+  }
+
+  /// method to replace the current
+  /// set of univerisity with a new one
+  void updateUniversities(Set<University> universityList){
+    _universities.clear();
+    _universities.addAll(universityList);
   }
 
   /// method to get a clone of the list of universities

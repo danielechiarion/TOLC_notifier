@@ -21,5 +21,5 @@ class University{
 
   /// Override of hash method
   @override
-  int get hashCode => name.hashCode;
+  int get hashCode => name.toLowerCase().hashCode;
 }
