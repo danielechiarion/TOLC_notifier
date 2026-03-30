@@ -165,7 +165,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                         subtitle: Text(
                           _localUniversities.isEmpty 
                             ? "Nessuna università"
-                            : _localUniversities.map((e) => "• ${e.name}").join(" "),
+                            : _localUniversities.map((e) => "• ${e.name}").join("\n"),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),

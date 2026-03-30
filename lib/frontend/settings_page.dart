@@ -49,7 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             SwitchListTile(
               title: const Text("Abilita ricerca"),
-              activeTrackColor: Colors.limeAccent,
+              activeTrackColor: Colors.purple,
               value: searchEnabled,
               onChanged: (value) {
                 setState(() {
@@ -60,7 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             SwitchListTile(
               title: const Text("Abilita notifiche"),
-              activeTrackColor: Colors.limeAccent,
+              activeTrackColor: Colors.purple,
               value: notifyEnabled,
               onChanged: (value) {
                 setState(() {
