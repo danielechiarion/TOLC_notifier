@@ -3,10 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importante
 import 'package:sqflite/sqflite.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'services/TOLC_finder.dart';
+import 'services/logger_utils.dart';
 
 import 'frontend/MainNavigation.dart';
+
+/// Periodic function to be executed
+/// with the different functionalities
+/// to be activated in background
+@pragma('vm:entry-point') // mandatory to make the code removable on the compilation phase
+void callbackDispatcher(){
+  Workmanager().executeTask((taskName, inputData) async {
+    switch (taskName) {
+      /* case where to use the TOLC finder */
+      case "tolc_finder":
+        logger.i("TOLC finder process started at ${DateTime.now()}"); // using loggers to write date and time of actions
+        bool result = await TOLC_finder_main();
+        logger.i("TOLC finder process ended at ${DateTime.now()} with result $result");
+        break;
+    }
+    return Future.value(true); // Ritorna true se il task è riuscito
+  });
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
@@ -15,6 +35,24 @@ Future<void> main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+
+  /* initialize workmanager and set in production.
+  Debug mode sends you a notification if the task
+  has been activated */
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: false
+  );
+  /* set how often the workmanager has to be activated.
+  The starting configuration will repeat the background task
+  every 5 HOURS with the use of INTERNET CONNECTION, which is
+  necessary to perform the scraping of the webpages for the TOLC */
+  Workmanager().registerPeriodicTask(
+    'TOLC_notifier_background', 
+    'TOLC_finder',
+    frequency: Duration(hours: 5),
+    constraints: Constraints(networkType: NetworkType.connected)
+  );
 
   runApp(const MainNavigation());
 }
