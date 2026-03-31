@@ -31,25 +31,23 @@ class ResultsPage {
     return SingleChildScrollView(
       child:Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("I tuoi risultati",
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary, // Colore coerente col brand
+        child: Scaffold(
+          appBar: AppBar(title: Text("I tuoi risultati",
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.secondary,
+                      )
+                    ),
+                    centerTitle: true,
                   ),
-                )
-              ],
-            ),
-            const SizedBox(height: 24,),
-            Column(
-              children: _results.map((item) => ResultCard(item).create(context)).toList()
-            )
-          ],
-        ),
+          body: Column(
+                  children: [
+                    Column(
+                      children: _results.map((item) => ResultCard(item).create(context)).toList()
+                    )
+                  ],
+                ),
+        )        
       )
     );
   }
