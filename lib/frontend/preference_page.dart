@@ -63,7 +63,7 @@ class _PreferencePageState extends State<PreferencePage>{
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: Text("Impostazioni",
+      appBar: AppBar(title: Text("Le tue preferenze",
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.secondary,
