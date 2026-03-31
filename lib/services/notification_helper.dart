@@ -36,7 +36,9 @@ class NotificationsService {
     tz.setLocalLocation(tz.getLocation('Europe/Rome'));
 
     // Initialize the notifications plugin
-    await flutterLocalNotificationsPlugin.initialize(settings);
+    await flutterLocalNotificationsPlugin.initialize(
+      settings: settings
+    );
   }
 
   /// Shows an immediate notification on the device.
@@ -63,10 +65,10 @@ class NotificationsService {
 
     // Show the notification immediately
     await flutterLocalNotificationsPlugin.show(
-      0, // Notification ID
-      title,
-      body,
-      platformDetails,
+      id: 0, // Notification ID
+      title: title,
+      body: body,
+      notificationDetails: platformDetails,
     );
   }
 
@@ -100,14 +102,12 @@ class NotificationsService {
 
     // Schedule the notification
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      1, // Notification ID
-      title,
-      body,
-      tzScheduledTime, // Must be TZDateTime
-      platformDetails,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      id: 1, // Notification ID
+      title: title,
+      body: body,
+      scheduledDate: tzScheduledTime, // Must be TZDateTime
+      notificationDetails: platformDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 }
