@@ -63,12 +63,7 @@ class _PreferencePageState extends State<PreferencePage>{
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      /* list of the existing preferences */
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Scaffold(
-            appBar: AppBar(title: Text("Impostazioni",
+      appBar: AppBar(title: Text("Impostazioni",
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.secondary,
@@ -76,25 +71,27 @@ class _PreferencePageState extends State<PreferencePage>{
                       ),
                       centerTitle: true,
                     ),
-            body: Column(
-                    children: [
-                      Column(
-                        children: _preferenceList.map((item) => PreferenceCard(
-                          // ValueKey ensures Flutter reuses the correct card state
-                          // when the list changes, instead of reassigning states by position.
-                          key: ValueKey(item.ID),
-                          deleteFunction: _deletePreference, 
-                          // onUpdate no longer reloads all data from DB — the card
-                          // manages its own local state. This callback is kept for
-                          // future use (e.g. showing a snackbar from the parent).
-                          onUpdate: () {},
-                          preference: item, 
-                          universities: _universityList,
-                        )).toList(),
-                      )
-                    ],
-                  ),
-          )
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+                  children: [
+                    Column(
+                      children: _preferenceList.map((item) => PreferenceCard(
+                        // ValueKey ensures Flutter reuses the correct card state
+                        // when the list changes, instead of reassigning states by position.
+                        key: ValueKey(item.ID),
+                        deleteFunction: _deletePreference, 
+                        // onUpdate no longer reloads all data from DB — the card
+                        // manages its own local state. This callback is kept for
+                        // future use (e.g. showing a snackbar from the parent).
+                        onUpdate: () {},
+                        preference: item, 
+                        universities: _universityList,
+                      )).toList(),
+                    )
+                  ],
+                ),
         )
       ),
 

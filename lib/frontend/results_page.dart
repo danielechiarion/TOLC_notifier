@@ -28,11 +28,8 @@ class ResultsPage {
   /// to make the result page. 
   /// In this case it will be a list of the appointments found
   static Widget create(BuildContext context){
-    return SingleChildScrollView(
-      child:Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Scaffold(
-          appBar: AppBar(title: Text("I tuoi risultati",
+    return Scaffold(
+      appBar: AppBar(title: Text("I tuoi risultati",
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.secondary,
@@ -40,7 +37,10 @@ class ResultsPage {
                     ),
                     centerTitle: true,
                   ),
-          body: Column(
+      body: SingleChildScrollView(
+        child:Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
                   children: [
                     Column(
                       children: _results.map((item) => ResultCard(item).create(context)).toList()
