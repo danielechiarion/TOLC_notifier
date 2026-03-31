@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importante
 import 'package:sqflite/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'services/TOLC_finder.dart';
 import 'services/logger_utils.dart';
@@ -126,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState(){
     super.initState();
     saveLastAccess(); // save the last access date and time
+    _requestPermissions(); // ask permissions for the application
   }
 
   @override
@@ -188,5 +190,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     sharedPreferences.setString('last_last_access', sharedPreferences.getString('last_access') ?? ''); // move the last access to the last last
     sharedPreferences.setString('last_access', DateTime.now().toIso8601String()); // then update the last access with current date and time
+  }
+
+  /// Functions to request permissions
+  /// to make the app work with all the tools available
+  Future<void> _requestPermissions() async {
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        FlutterLocalNotificationsPlugin().
+        resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidImplementation != null) {
+      /* ask for notification approve */
+      await androidImplementation.requestNotificationsPermission();
+    }
   }
 }
