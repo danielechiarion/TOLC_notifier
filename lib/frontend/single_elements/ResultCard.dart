@@ -71,7 +71,17 @@ class ResultCard {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Text(DateFormat("dd/MM/yyyy").format(_result.endSubscription))
-            )
+            ),
+            ListTile(
+              leading: Icon(
+                _result.mode == "TOLC@CASA" ? Icons.home : Icons.school,
+              ),
+              title: Text(
+                "Modalità",
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(_result.mode)
+            ),
           ],
         )
       )
