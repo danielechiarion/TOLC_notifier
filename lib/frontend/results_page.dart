@@ -16,7 +16,7 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
   /* private method to init the page with the necessary data
   and get them from the database */
   @override
-  void initState() async{
+  void initState(){
     super.initState();
     _loadData(); // load the data from the database
     WidgetsBinding.instance.addObserver(this); // add observer to listen to app lifecycle changes
@@ -69,7 +69,7 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
     try {
       await database.initialize();
       List<Result> output = await database.getResults();
-      setState(() async {
+      setState(() {
           _results = output;
       });
     } catch (e) {

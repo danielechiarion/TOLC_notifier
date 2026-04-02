@@ -138,10 +138,9 @@ Future<bool> TOLC_finder_main() async {
   try{
     preferences = await database.getPreferences();
   }catch(e){
+    await database.close();
     logger.e("Error occured while searching preferences: $e");
     return false;
-  }finally{
-    await database.close();
   }
 
   /* get the results from the database */
