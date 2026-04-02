@@ -52,7 +52,7 @@ Future<void> requestPermissions() async {
   }
 }
 
-Future<void> main() async {
+void main(){
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
   // Initialize sqflite for desktop (Windows/Linux/macOS)
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -65,7 +65,7 @@ Future<void> main() async {
   has been activated */
   Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true // debug to send notification when the task is activated
+    isInDebugMode: false // debug to send notification when the task is activated
   );
   /* set how often the workmanager has to be activated.
   The starting configuration will repeat the background task

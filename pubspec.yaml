@@ -1,4 +1,4 @@
-name: TOLC_notifier
+name: tolc_notifier
 description: "App to notify when TOLC is open for registration"
 publish_to: "none"
 version: 0.1.0
@@ -37,7 +37,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  flutter_launcher_icons: "^0.13.1" # icons
+  flutter_launcher_icons: ^0.14.4 # icons
 
 flutter:
   uses-material-design: true

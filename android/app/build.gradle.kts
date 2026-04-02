@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flutter_template"
+    namespace = "com.example.tolc_notifier"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

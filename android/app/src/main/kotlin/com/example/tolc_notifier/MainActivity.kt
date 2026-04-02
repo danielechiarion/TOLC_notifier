@@ -1,4 +1,4 @@
-package com.example.flutter_template
+package com.example.tolc_notifier
 
 import io.flutter.embedding.android.FlutterActivity
 
