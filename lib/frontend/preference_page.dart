@@ -25,7 +25,7 @@ preference list */
 class _PreferencePageState extends State<PreferencePage>{
   // Use List instead of Set: Set deduplicates based on hashCode/==,
   // so if Preference doesn't override them, all items collapse to one.
-  List<Preference> _preferenceList = [];
+  Set<Preference> _preferenceList = {};
   Set<University> _universityList = {};
 
   /// Function to init the preference page
@@ -48,7 +48,7 @@ class _PreferencePageState extends State<PreferencePage>{
       final universities = await database.getUniversities();
       
       setState(() {
-        _preferenceList = List.from(preferences); // List preserves all items
+        _preferenceList = Set.from(preferences);
         _universityList = Set.from(universities);
       });
     } catch (e) {
