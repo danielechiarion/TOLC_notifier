@@ -32,7 +32,6 @@ class _NavigationExampleState extends State<NavigationExample> {
     }
 
     Future<void> _init() async {
-      await ResultsPage.init();
       setState(() {
         _initialized = true;
       });
@@ -74,7 +73,7 @@ class _NavigationExampleState extends State<NavigationExample> {
       ),
       body: <Widget>[
         /// Home page
-        ResultsPage.create(context),
+        ResultsPage(),
 
         /// Preference page
         PreferencePage(),

@@ -5,29 +5,41 @@ import '../services/logger_utils.dart';
 import '../classes/Result.dart';
 import '../frontend/single_elements/ResultCard.dart';
 
-class ResultsPage {
+class ResultsPage extends StatefulWidget{
+  @override
+  State<ResultsPage> createState() => _ResultsPageState();
+}
+
+class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
   static List<Result> _results = [];
 
   /* private method to init the page with the necessary data
   and get them from the database */
-  static Future<void> init() async{
-    final DatabaseService database = DatabaseService.instance;
+  @override
+  void initState() async{
+    super.initState();
+    _loadData(); // load the data from the database
+    WidgetsBinding.instance.addObserver(this); // add observer to listen to app lifecycle changes
+  }
 
-    try {
-      await database.initialize();
-      _results = await database.getResults();
-    } catch (e) {
-      _results = [];
-      logger.e("Error while fetching results from the databae: {$e}");
-    } finally {
-      await database.close();
+  @override
+  void dispose(){
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData(); // reload data when the app is resumed
     }
   }
 
-  /// Method to create the elements that are necessary
-  /// to make the result page. 
-  /// In this case it will be a list of the appointments found
-  static Widget create(BuildContext context){
+  /* Method to create the elements that are necessary
+    to make the result page. 
+    In this case it will be a list of the appointments found */
+  @override
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(title: Text("I tuoi risultati",
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -50,5 +62,23 @@ class ResultsPage {
         )        
       )
     );
+  }
+
+  void _loadData() async {
+    final DatabaseService database = DatabaseService.instance;
+    try {
+      await database.initialize();
+      List<Result> output = await database.getResults();
+      setState(() async {
+          _results = output;
+      });
+    } catch (e) {
+      setState(() {
+        _results = [];
+      });
+      logger.e("Error while fetching results from the databae: {$e}");
+    } finally {
+      await database.close();
+    }
   }
 }

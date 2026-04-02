@@ -37,7 +37,7 @@ class NotificationsService {
 
     // Initialize the notifications plugin
     await flutterLocalNotificationsPlugin.initialize(
-      settings: settings
+      settings: settings,
     );
   }
 
