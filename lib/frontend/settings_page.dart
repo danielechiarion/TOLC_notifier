@@ -79,6 +79,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 _saveSettings();
               },
             ),
+            SwitchListTile(
+              title: const Text("Abilita notifiche"),
+              activeTrackColor: Colors.purple,
+              value: notifyEnabled,
+              onChanged: (value) {
+                setState(() {
+                  notifyEnabled = value;
+                });
+                _saveSettings();
+              },
+            ),
             ListTile(
               title: const Text("Intervallo di ricerca (ore)"),
               /* the widget to the right */
