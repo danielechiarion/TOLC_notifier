@@ -138,12 +138,11 @@ Future<bool> TOLC_finder_main() async {
 
   try{
     preferences = await database.getPreferences();
-    preferences = [Preference(TOLCType.engineering, true, true)];
-    preferences[0].addUniversity(University("padova"));
   }catch(e){
     logger.e("Error occured while searching preferences: $e");
-    database.close();
     return false;
+  }finally{
+    await database.close();
   }
 
   /* get the results from the database */
