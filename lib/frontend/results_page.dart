@@ -90,8 +90,9 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
     /* get the last fetch time
     from the user on the application */
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final raw = sharedPreferences.getString('last_last_access') ?? '';
     setState(() {
-      _lastFetchTime = DateTime.parse(sharedPreferences.getString('last_last_access') ?? DateTime.now().toIso8601String());
+      _lastFetchTime = raw.isNotEmpty ? DateTime.parse(raw) : DateTime.now();
     });
   }
 }
