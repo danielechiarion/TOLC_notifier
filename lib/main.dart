@@ -77,6 +77,12 @@ Future<void> main() async {
     frequency: Duration(minutes: 15), // time for testing, to be changed
     constraints: Constraints(networkType: NetworkType.connected)
   );
+  /* add also one-off task to do at the beginning */
+  Workmanager().registerOneOffTask(
+    'TOLC_notifier_start',
+    'TOLC_finder',
+    constraints: Constraints(networkType: NetworkType.connected)
+  );
 
   /* add functions before the start
   of the application */
