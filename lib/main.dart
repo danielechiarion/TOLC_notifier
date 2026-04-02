@@ -19,7 +19,7 @@ void callbackDispatcher(){
   Workmanager().executeTask((taskName, inputData) async {
     switch (taskName) {
       /* case where to use the TOLC finder */
-      case "tolc_finder":
+      case "TOLC_finder":
         logger.i("TOLC finder process started at ${DateTime.now()}"); // using loggers to write date and time of actions
         bool result = await TOLC_finder_main();
         logger.i("TOLC finder process ended at ${DateTime.now()} with result $result");
@@ -27,6 +27,29 @@ void callbackDispatcher(){
     }
     return Future.value(true); // Ritorna true se il task è riuscito
   });
+}
+
+/// Function to save the last access
+/// date and time in the shared preferences,
+/// to be used for the results
+Future<void> saveLastAccess() async{
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance(); // get the local storage
+
+  sharedPreferences.setString('last_last_access', sharedPreferences.getString('last_access') ?? ''); // move the last access to the last last
+  sharedPreferences.setString('last_access', DateTime.now().toIso8601String()); // then update the last access with current date and time
+}
+
+/// Functions to request permissions
+/// to make the app work with all the tools available
+Future<void> requestPermissions() async {
+  final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+      FlutterLocalNotificationsPlugin().
+      resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+  if (androidImplementation != null) {
+    /* ask for notification approve */
+    await androidImplementation.requestNotificationsPermission();
+  }
 }
 
 Future<void> main() async {
@@ -42,7 +65,7 @@ Future<void> main() async {
   has been activated */
   Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: false
+    isInDebugMode: true // debug to send notification when the task is activated
   );
   /* set how often the workmanager has to be activated.
   The starting configuration will repeat the background task
@@ -51,9 +74,14 @@ Future<void> main() async {
   Workmanager().registerPeriodicTask(
     'TOLC_notifier_background', 
     'TOLC_finder',
-    frequency: Duration(hours: 5),
+    frequency: Duration(minutes: 15), // time for testing, to be changed
     constraints: Constraints(networkType: NetworkType.connected)
   );
+
+  /* add functions before the start
+  of the application */
+  requestPermissions(); // request priviledges for notifications
+  saveLastAccess(); // save the last access date and time
 
   runApp(const MainNavigation());
 }
@@ -126,8 +154,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState(){
     super.initState();
-    saveLastAccess(); // save the last access date and time
-    _requestPermissions(); // ask permissions for the application
   }
 
   @override
@@ -181,27 +207,5 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
-  }
-
-  /* function to upload the last_access
-  date and time in the shared prefernces */
-  Future<void> saveLastAccess() async{
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance(); // get the local storage
-
-    sharedPreferences.setString('last_last_access', sharedPreferences.getString('last_access') ?? ''); // move the last access to the last last
-    sharedPreferences.setString('last_access', DateTime.now().toIso8601String()); // then update the last access with current date and time
-  }
-
-  /// Functions to request permissions
-  /// to make the app work with all the tools available
-  Future<void> _requestPermissions() async {
-    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-        FlutterLocalNotificationsPlugin().
-        resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-
-    if (androidImplementation != null) {
-      /* ask for notification approve */
-      await androidImplementation.requestNotificationsPermission();
-    }
   }
 }
