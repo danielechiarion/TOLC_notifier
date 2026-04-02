@@ -83,10 +83,8 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
         _results = [];
       });
       logger.e("Error while fetching results from the databae: {$e}");
-    } finally {
-      await database.close();
     }
-
+    
     /* get the last fetch time
     from the user on the application */
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
