@@ -82,7 +82,7 @@ Future<void> main() async {
     'TOLC_notifier_start',
     'TOLC_finder',
     constraints: Constraints(networkType: NetworkType.connected),
-    initialDelay: Duration(minutes: 10) // put an initial delay of 30 minutes
+    initialDelay: Duration(minutes: 30) // put an initial delay of 30 minutes
   );
 
   /* add functions before the start

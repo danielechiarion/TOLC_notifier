@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/database_helper.dart';
 import '../services/logger_utils.dart';
@@ -12,6 +13,7 @@ class ResultsPage extends StatefulWidget{
 
 class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
   static List<Result> _results = [];
+  static DateTime _lastFetchTime = DateTime.now();
 
   /* private method to init the page with the necessary data
   and get them from the database */
@@ -55,7 +57,10 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
           child: Column(
                   children: [
                     Column(
-                      children: _results.map((item) => ResultCard(item).create(context)).toList()
+                      /* add the condition to become a new result */
+                      children: _results.map((item) => ResultCard(item, 
+                      newResult: item.notifyDate.compareTo(_lastFetchTime)>=0)
+                      .create(context)).toList()
                     )
                   ],
                 ),
@@ -65,6 +70,7 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
   }
 
   void _loadData() async {
+    /* get the data from the database */
     final DatabaseService database = DatabaseService.instance;
     try {
       await database.initialize();
@@ -80,5 +86,12 @@ class _ResultsPageState extends State<ResultsPage> with WidgetsBindingObserver{
     } finally {
       await database.close();
     }
+
+    /* get the last fetch time
+    from the user on the application */
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      _lastFetchTime = DateTime.parse(sharedPreferences.getString('last_last_access') ?? DateTime.now().toIso8601String());
+    });
   }
 }
