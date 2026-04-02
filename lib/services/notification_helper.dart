@@ -65,7 +65,7 @@ class NotificationsService {
 
     // Show the notification immediately
     await flutterLocalNotificationsPlugin.show(
-      id: 0, // Notification ID
+      id: DateTime.now().millisecondsSinceEpoch % 100000, // Notification ID
       title: title,
       body: body,
       notificationDetails: platformDetails,

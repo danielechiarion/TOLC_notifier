@@ -11,7 +11,6 @@ import 'notification_helper.dart';
 import '../classes/Preference.dart';
 import '../classes/University.dart';
 import '../classes/Result.dart';
-import '../classes/TOLCType.dart';
 
 /// Function to scrape the html of the page and get the elements
 /// containing the TOLC information
