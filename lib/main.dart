@@ -52,13 +52,19 @@ Future<void> requestPermissions() async {
   }
 }
 
-void main(){
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
-  // Initialize sqflite for desktop (Windows/Linux/macOS)
+  /* Initialize sqflite for desktop (Windows/Linux/macOS) */
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+
+  /* get the shared preferences
+  date and get the interval from the period tasks */
+  SharedPreferences localStorage = await SharedPreferences.getInstance();
+  int backgroundTaskInterval = localStorage.getInt('background_task_interval') ?? 5; 
+  backgroundTaskInterval = backgroundTaskInterval == 0 ? 5 : backgroundTaskInterval; // make sure that the interval is not 0
 
   /* initialize workmanager and set in production.
   Debug mode sends you a notification if the task
@@ -74,21 +80,22 @@ void main(){
   Workmanager().registerPeriodicTask(
     'TOLC_notifier_background', 
     'TOLC_finder',
-    frequency: Duration(hours: 5), // time for testing, to be changed
-    constraints: Constraints(networkType: NetworkType.connected)
+    frequency: Duration(hours: backgroundTaskInterval),
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.replace
   );
   /* add also one-off task to do at the beginning */
   Workmanager().registerOneOffTask(
     'TOLC_notifier_start',
     'TOLC_finder',
     constraints: Constraints(networkType: NetworkType.connected),
-    initialDelay: Duration(minutes: 15) // put an initial delay of 30 minutes
+    initialDelay: Duration(minutes: 15) // put an initial delay 
   );
 
   /* add functions before the start
   of the application */
-  requestPermissions(); // request priviledges for notifications
-  saveLastAccess(); // save the last access date and time
+  await requestPermissions(); // request priviledges for notifications
+  await saveLastAccess(); // save the last access date and time
 
   runApp(const MainNavigation());
 }
