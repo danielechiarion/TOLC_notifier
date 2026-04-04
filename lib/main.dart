@@ -53,6 +53,19 @@ Future<void> requestPermissions() async {
   }
 }
 
+/// Function to initialize the notifications service on
+/// background without blocking the main process during apk
+void initializeNotificationsAsync() {
+  /* the function doesn't use await, 
+  but just let the notifications be 
+  initialized */
+  NotificationsService().init().then((_) {
+    logger.i("Notifications service initialized");
+  }).catchError((e) {
+    logger.e("Error initializing notifications: $e");
+  });
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ensure that the binding is initialized before running the app
   /* Initialize sqflite for desktop (Windows/Linux/macOS) */
@@ -99,8 +112,7 @@ Future<void> main() async {
   await saveLastAccess(); // save the last access date and time
 
   /* initialize the notifications service */
-  NotificationsService notificationsService = NotificationsService();
-  await notificationsService.init();
+  initializeNotificationsAsync();
 
   runApp(const MainNavigation());
 }
