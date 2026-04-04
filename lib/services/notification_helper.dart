@@ -35,6 +35,15 @@ class NotificationsService {
     // Set the local timezone (change 'Europe/Rome' to your local timezone)
     tz.setLocalLocation(tz.getLocation('Europe/Rome'));
 
+    /* require the permission again for notifications */
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+      flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+  
+    if (androidImplementation != null) {
+      await androidImplementation.requestNotificationsPermission();
+    }
+
     // Initialize the notifications plugin
     await flutterLocalNotificationsPlugin.initialize(
       settings: settings,

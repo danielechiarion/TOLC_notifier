@@ -156,7 +156,7 @@ Future<bool> TOLC_finder_main() async {
 
   /* instantiate notification object */
   NotificationsService notification = NotificationsService();
-  notification.init(); // initialize the notification service
+  // don't need to initialize the notification service, because it has been done in the main
   
   /* start a cycle to see all the preferences
   and find possible matches */
@@ -167,21 +167,17 @@ Future<bool> TOLC_finder_main() async {
     
     List<Result> finalResults = _filterResults(currentPreference, currentResults, previousResults);
 
+    /* save the results inside the database */
+    try{
+      await database.saveResults(finalResults);
+    }catch(e){
+      logger.e("Error occured while saving results into the database: $e");
+      return false;
+    }
+
     /* if the final result has produced some results
     put a notification for every message */
     for(Result singleResult in finalResults){
-      /* try to save the result found for a maximum 
-      of 3 times */
-      for(int i=0;i<3;i++){
-        try{
-          await database.saveResult(singleResult);
-          break;
-        }catch(e){
-          /* send a warning if the result has not been saved */
-          logger.w("Error occured while saving the result ${singleResult.toString()}\nFollowing error reported: ${e}");
-        }
-      }
-
       /* show the notification for the new result found,
       if the settings is enabled */
       if(notify_enabled){

@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'services/TOLC_finder.dart';
 import 'services/logger_utils.dart';
+import 'services/notification_helper.dart';
 
 import 'frontend/MainNavigation.dart';
 
@@ -96,6 +97,10 @@ Future<void> main() async {
   of the application */
   await requestPermissions(); // request priviledges for notifications
   await saveLastAccess(); // save the last access date and time
+
+  /* initialize the notifications service */
+  NotificationsService notificationsService = NotificationsService();
+  await notificationsService.init();
 
   runApp(const MainNavigation());
 }

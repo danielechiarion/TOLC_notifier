@@ -292,7 +292,7 @@ class DatabaseService{
     it is possible */
     if(preferenceID >=0){
       preference.ID = preferenceID;
-    }
+    }  
 
     return true;
   }
@@ -312,6 +312,17 @@ class DatabaseService{
       );
     }catch(e){
       throw Exception('Error saving result: $e');
+    }
+
+    return true;
+  }
+
+  /// Function to save multiple results into the database,
+  /// with the purpose to avoid multiple calls, increase 
+  /// the performance and avoid concurrency problems
+  Future<bool> saveResults(List<Result> results) async {
+    for(Result singleResult in results){
+      saveResult(singleResult);
     }
 
     return true;
