@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -108,11 +109,11 @@ Future<void> main() async {
 
   /* add functions before the start
   of the application */
-  await requestPermissions(); // request priviledges for notifications
-  await saveLastAccess(); // save the last access date and time
-
-  /* initialize the notifications service */
-  initializeNotificationsAsync();
+  unawaited(Future(() async {
+    await requestPermissions(); // request priviledges for notifications
+    await saveLastAccess(); // save the last access date and time
+    initializeNotificationsAsync(); // initialize the notification permission service
+  }));
 
   runApp(const MainNavigation());
 }
