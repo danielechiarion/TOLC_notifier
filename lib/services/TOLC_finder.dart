@@ -191,6 +191,6 @@ Future<bool> TOLC_finder_main() async {
     }
   }
 
-  database.close(); // close the database connection
+  await database.close(); // close the database connection
   return true;
 }

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importante
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -80,7 +80,7 @@ Future<void> main() async {
   Workmanager().registerPeriodicTask(
     'TOLC_notifier_background', 
     'TOLC_finder',
-    frequency: Duration(hours: backgroundTaskInterval),
+    frequency: Duration(minutes: 15),
     constraints: Constraints(networkType: NetworkType.connected),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.replace
   );
@@ -89,7 +89,7 @@ Future<void> main() async {
     'TOLC_notifier_start',
     'TOLC_finder',
     constraints: Constraints(networkType: NetworkType.connected),
-    initialDelay: Duration(minutes: 15) // put an initial delay 
+    initialDelay: Duration(minutes: 5) // put an initial delay 
   );
 
   /* add functions before the start

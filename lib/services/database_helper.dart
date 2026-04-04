@@ -301,7 +301,7 @@ class DatabaseService{
       await _database!.insert(
         'Result',
         result.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }catch(e){
       throw Exception('Error saving result: $e');
