@@ -154,7 +154,7 @@ class DatabaseService{
       preferenceID = await _database!.insert(
         'Preference',
         preference.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }catch(e){
       throw Exception('Error saving preference: $e');
@@ -252,10 +252,11 @@ class DatabaseService{
   /// with overriding all the previous connections to the other
   /// tables and the old values, as well
   Future<bool> updatePreference(Preference preference) async{
+    int preferenceID = -1;
     try{
       /* update the preference into the database, with all the connections
       to the other tables, thanks to the cascade delete */
-      _database!.update('Preference', preference.toMap(), where: 'id=?', whereArgs: [preference.ID]);
+      preferenceID = await _database!.update('Preference', preference.toMap(), where: 'id=?', whereArgs: [preference.ID]);
     }catch(e)
     {
       throw Exception('Error updating preference: $e');
@@ -285,6 +286,12 @@ class DatabaseService{
       });
     }catch(e){
       throw Exception('Error saving preference-university connections: $e');
+    }
+
+    /* update the new ID of the preference if 
+    it is possible */
+    if(preferenceID >=0){
+      preference.ID = preferenceID;
     }
 
     return true;

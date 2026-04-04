@@ -81,8 +81,10 @@ List<Result> _generateResults(Preference preference, List<dom.Element> elements)
 /// so as to return the results wanted. 
 /// The function also tries to avoid duplicates with the previous results
 List<Result> _filterResults(Preference preference, List<Result> totalResults, List<Result> previousResults){
+  List<Result> outputList = List.from(totalResults);
+  
   /* start the cycle to control the different attributes */
-  totalResults.removeWhere((res) {
+  outputList.removeWhere((res) {
     /* first control if the result found from the page is not present 
     among the previous results gathered */
     if(previousResults.contains(res))
@@ -106,7 +108,7 @@ List<Result> _filterResults(Preference preference, List<Result> totalResults, Li
     return false;
   });
 
-  return totalResults;
+  return outputList;
 }
 
 /// Main function of the service, which is called
