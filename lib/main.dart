@@ -80,7 +80,7 @@ Future<void> main() async {
   Workmanager().registerPeriodicTask(
     'TOLC_notifier_background', 
     'TOLC_finder',
-    frequency: Duration(minutes: 15),
+    frequency: Duration(hours: backgroundTaskInterval),
     constraints: Constraints(networkType: NetworkType.connected),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.replace
   );
