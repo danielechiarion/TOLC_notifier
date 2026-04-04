@@ -17,10 +17,11 @@ class Preference {
 
   /// define hash method
   @override
-  int get hashCode => tolcType.hashCode ^ TOLCcasa.hashCode ^ tolcType.hashCode;
+  int get hashCode => tolcType.hashCode ^ TOLCcasa.hashCode ^ TOLCuni.hashCode;
 
   /// equals for the class preference
   /// using the hashCode to compare them
+  @override
   bool operator ==(Object other){
     return other is Preference && hashCode == other.hashCode;
   }
