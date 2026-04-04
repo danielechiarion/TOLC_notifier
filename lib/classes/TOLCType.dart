@@ -6,7 +6,7 @@ enum TOLCType {
   economics("TOLC-E", "https://testcisia.it/calendario.php?tolc=economia"),
   science("TOLC-S", "https://testcisia.it/calendario.php?tolc=scienze"),
   pharmaceutical("TOLC-F", "https://testcisia.it/calendario.php?tolc=farmacia"),
-  humanistics("TOLC-U", "https://testcisia.it/calendario.php?tolc=umanistica"),
+  humanistics("TOLC-SU", "https://testcisia.it/calendario.php?tolc=umanistica"),
   biology("TOLC-B", "https://testcisia.it/calendario.php?tolc=biologia"),
   agricolture("TOLC-AV", "https://testcisia.it/calendario.php?tolc=agraria"),
   psychology("TOLC-PSI", "https://testcisia.it/calendario.php?tolc=psicologia"),
