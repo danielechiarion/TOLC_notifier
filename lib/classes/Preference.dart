@@ -75,6 +75,6 @@ class Preference {
   /// Method to control if a university is inside the list using
   /// the name or part of it
   bool isThereUniverisity(University university){
-    return _universities.any((singleUniversity) => singleUniversity.name.toLowerCase().contains(university.name.toLowerCase()));
+    return _universities.any((singleUniversity) => university.name.toLowerCase().contains(singleUniversity.name.toLowerCase()));
   }
 }
