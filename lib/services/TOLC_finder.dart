@@ -177,10 +177,10 @@ Future<bool> TOLC_finder_main() async {
 
     /* if the final result has produced some results
     put a notification for every message */
-    for(Result singleResult in finalResults){
-      /* show the notification for the new result found,
-      if the settings is enabled */
-      if(notify_enabled){
+    if(notify_enabled){
+      for(Result singleResult in finalResults){
+        /* show the notification for the new result found,
+        if the settings is enabled */
         await notification.showNotification(
           title: "Nuovo ${singleResult.tolcType.name} disponibile!",
           body: "${singleResult.university.name} il ${DateFormat('dd/MM/yyyy').format(singleResult.assessmentDate)}"

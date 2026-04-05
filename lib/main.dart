@@ -19,6 +19,8 @@ import 'frontend/MainNavigation.dart';
 @pragma('vm:entry-point') // mandatory to make the code removable on the compilation phase
 void callbackDispatcher(){
   Workmanager().executeTask((taskName, inputData) async {
+    await initializeNotificationsAsync(); // initialize the notifications service
+
     switch (taskName) {
       /* case where to use the TOLC finder */
       case "TOLC_finder":
@@ -56,11 +58,11 @@ Future<void> requestPermissions() async {
 
 /// Function to initialize the notifications service on
 /// background without blocking the main process during apk
-void initializeNotificationsAsync() {
+Future<void> initializeNotificationsAsync() async {
   /* the function doesn't use await, 
   but just let the notifications be 
   initialized */
-  NotificationsService().init().then((_) {
+  await NotificationsService().init().then((_) {
     logger.i("Notifications service initialized");
   }).catchError((e) {
     logger.e("Error initializing notifications: $e");
@@ -112,7 +114,6 @@ Future<void> main() async {
   unawaited(Future(() async {
     await requestPermissions(); // request priviledges for notifications
     await saveLastAccess(); // save the last access date and time
-    initializeNotificationsAsync(); // initialize the notification permission service
   }));
 
   runApp(const MainNavigation());
