@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
@@ -54,6 +55,15 @@ Future<void> requestPermissions() async {
     /* ask for notification approve */
     await androidImplementation.requestNotificationsPermission();
   }
+
+  /* then ask permission for battery use and optimization
+  during the workmanager tasks */
+  const platform = MethodChannel('com.example.tolc_notifier/battery');
+  try {
+    await platform.invokeMethod('requestIgnoreBatteryOptimization');
+  } catch (e) {
+    logger.e("Error requesting battery exemption: $e");
+  }
 }
 
 /// Function to initialize the notifications service on
@@ -83,6 +93,14 @@ Future<void> main() async {
   int backgroundTaskInterval = localStorage.getInt('background_task_interval') ?? 5; 
   backgroundTaskInterval = backgroundTaskInterval == 0 ? 5 : backgroundTaskInterval; // make sure that the interval is not 0
 
+  /* add functions before the start
+  of the application.
+  Use this before the definition of the workmanager tasks */
+  unawaited(Future(() async {
+    await requestPermissions(); // request priviledges for notifications
+    await saveLastAccess(); // save the last access date and time
+  }));
+
   /* initialize workmanager and set in production.
   Debug mode sends you a notification if the task
   has been activated */
@@ -108,13 +126,6 @@ Future<void> main() async {
     constraints: Constraints(networkType: NetworkType.connected),
     initialDelay: Duration(minutes: 5) // put an initial delay 
   );
-
-  /* add functions before the start
-  of the application */
-  unawaited(Future(() async {
-    await requestPermissions(); // request priviledges for notifications
-    await saveLastAccess(); // save the last access date and time
-  }));
 
   runApp(const MainNavigation());
 }

@@ -64,8 +64,8 @@ class NotificationsService {
       'channel_id', // ID of the notification channel
       'channel_name', // Visible name of the channel
       channelDescription: 'Channel description',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.max,
+      priority: Priority.max,
     );
 
     // Platform-specific details
