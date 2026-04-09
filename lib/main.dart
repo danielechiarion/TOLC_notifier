@@ -20,6 +20,8 @@ import 'frontend/MainNavigation.dart';
 @pragma('vm:entry-point') // mandatory to make the code removable on the compilation phase
 void callbackDispatcher(){
   Workmanager().executeTask((taskName, inputData) async {
+    WidgetsFlutterBinding.ensureInitialized(); // background binding
+
     await initializeNotificationsAsync(); // initialize the notifications service
 
     switch (taskName) {
