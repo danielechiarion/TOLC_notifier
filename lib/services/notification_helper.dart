@@ -103,6 +103,9 @@ class NotificationsService {
       channelDescription: 'Channel description',
       importance: Importance.max,
       priority: Priority.high,
+      enableVibration: true,
+      enableLights: true,
+      playSound: true
     );
 
     // Platform-specific details
