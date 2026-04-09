@@ -66,8 +66,6 @@ Future<void> requestPermissions() async {
   } catch (e) {
     logger.e("Error requesting battery exemption: $e");
   }
-
-  await testNotification(); // send test notification
 }
 
 /// Function to initialize the notifications service on
