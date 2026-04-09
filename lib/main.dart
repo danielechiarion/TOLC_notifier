@@ -64,6 +64,8 @@ Future<void> requestPermissions() async {
   } catch (e) {
     logger.e("Error requesting battery exemption: $e");
   }
+
+  await testNotification(); // send test notification
 }
 
 /// Function to initialize the notifications service on
@@ -77,6 +79,20 @@ Future<void> initializeNotificationsAsync() async {
   }).catchError((e) {
     logger.e("Error initializing notifications: $e");
   });
+}
+
+/// Test function to send notification 
+/// after accepting the permission
+Future<void> testNotification() async{
+  logger.i("Test notification..."); // start testing the notification
+
+  /* initialize async notification */
+  await initializeNotificationsAsync();
+  NotificationsService notification = NotificationsService();
+
+  /* send the notification and log it */
+  await notification.showNotification(title: "Permessi attivati", body: "Notifiche disponibili!");
+  logger.i("Test notification sent");
 }
 
 Future<void> main() async {
