@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the TOLC_finder_main function from the TOLC_finder library, for the Dart programming language.">
+  <title>TOLC_finder_main function - TOLC_finder library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">tolc_notifier</a></li>
+    <li><a href="../services_TOLC_finder/">services&#47;TOLC_finder.dart</a></li>
+    <li class="self-crumb">TOLC_finder_main function</li>
+  </ol>
+  <div class="self-name">TOLC_finder_main</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="services_TOLC_finder&#47;services_TOLC_finder-library-sidebar.html"
+      data-below-sidebar="">
+      <div>
+<h1><span class="kind-function">TOLC_finder_main</span> function 
+ 
+</h1></div>
+
+    <section class="multi-line-signature">
+        
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>&gt;</span></span>
+<span class="name ">TOLC_finder_main</span>(<wbr>)
+
+        
+
+    </section>
+    
+<section class="desc markdown">
+  <p>Main function of the service, which is called
+to execute following a certain frequency.
+It returns a boolean to indicate if the execution has been successful or not</p>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;bool&gt; TOLC_finder_main() async {
+  &#47;* get boolean values from the shared preferences
+  to control if actions can be done or are disable
+  due to settings change by the user *&#47;
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  bool notify_enabled = sharedPreferences.getBool(&#39;notify_enabled&#39;) ?? true;
+  bool search_enabled = sharedPreferences.getBool(&#39;search_enabled&#39;) ?? true;
+
+  &#47;* if the research is not enabled
+  stop the funtion and return true *&#47;
+  if(!search_enabled){
+    return true;
+  }
+
+  &#47;* variable and lists initialization to
+  avoid possible null errors due to exceptions *&#47;
+  List&lt;Preference&gt; preferences = [];
+  List&lt;Result&gt; previousResults = [];
+
+  &#47;* first get the database and get the preferences *&#47;
+  DatabaseService database = DatabaseService.instance;
+  await database.initialize();
+
+  try{
+    preferences = await database.getPreferences();
+  }catch(e){
+    await database.close();
+    logger.e(&quot;Error occured while searching preferences: $e&quot;);
+    return false;
+  }
+
+  &#47;* get the results from the database *&#47;
+  try{
+    previousResults = await database.getResults();
+  }catch(e){
+    logger.e(&quot;Error occured while searching previous results: $e&quot;);
+    database.close();
+    return false;
+  }
+
+  &#47;* instantiate notification object *&#47;
+  NotificationsService notification = NotificationsService();
+  &#47;&#47; don&#39;t need to initialize the notification service, because it has been done in the main
+
+  &#47;* start a cycle to see all the preferences
+  and find possible matches *&#47;
+  for(Preference currentPreference in preferences){
+    List&lt;Result&gt; currentResults = _generateResults(currentPreference, await _scrapeHtml(currentPreference));
+    if(currentResults.isEmpty)
+      continue; &#47;&#47; if no result has been found continue with the next
+
+    List&lt;Result&gt; finalResults = _filterResults(currentPreference, currentResults, previousResults);
+
+    &#47;* save the results inside the database *&#47;
+    try{
+      await database.saveResults(finalResults);
+    }catch(e){
+      logger.e(&quot;Error occured while saving results into the database: $e&quot;);
+      return false;
+    }
+
+    &#47;* if the final result has produced some results
+    put a notification for every message *&#47;
+    if(notify_enabled){
+      for(Result singleResult in finalResults){
+        &#47;* show the notification for the new result found,
+        if the settings is enabled *&#47;
+        await notification.showNotification(
+          title: &quot;Nuovo ${singleResult.tolcType.name} disponibile!&quot;,
+          body: &quot;${singleResult.university.name} il ${DateFormat(&#39;dd&#47;MM&#47;yyyy&#39;).format(singleResult.assessmentDate)}&quot;
+        );
+      }
+    }
+  }
+
+  await database.close(); &#47;&#47; close the database connection
+  return true;
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">tolc_notifier</a></li>
+    <li><a href="../services_TOLC_finder/">TOLC_finder</a></li>
+    <li class="self-crumb">TOLC_finder_main function</li>
+</ol>
+
+    <h5>TOLC_finder library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-left-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    tolc_notifier
+      0.1.0
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

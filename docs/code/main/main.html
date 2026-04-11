@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the main function from the main library, for the Dart programming language.">
+  <title>main function - main library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">tolc_notifier</a></li>
+    <li><a href="../main/">main.dart</a></li>
+    <li class="self-crumb">main function</li>
+  </ol>
+  <div class="self-name">main</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="main&#47;main-library-sidebar.html"
+      data-below-sidebar="">
+      <div>
+<h1><span class="kind-function">main</span> function 
+ 
+</h1></div>
+
+    <section class="multi-line-signature">
+        
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+<span class="name ">main</span>(<wbr>)
+
+        
+
+    </section>
+    
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; main() async {
+  WidgetsFlutterBinding.ensureInitialized(); &#47;&#47; ensure that the binding is initialized before running the app
+  &#47;* Initialize sqflite for desktop (Windows&#47;Linux&#47;macOS) *&#47;
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
+  &#47;* get the shared preferences
+  date and get the interval from the period tasks *&#47;
+  SharedPreferences localStorage = await SharedPreferences.getInstance();
+  int backgroundTaskInterval = localStorage.getInt(&#39;background_task_interval&#39;) ?? 5;
+  backgroundTaskInterval = backgroundTaskInterval == 0 ? 5 : backgroundTaskInterval; &#47;&#47; make sure that the interval is not 0
+
+  &#47;* add functions before the start
+  of the application.
+  Use this before the definition of the workmanager tasks *&#47;
+  unawaited(Future(() async {
+    await requestPermissions(); &#47;&#47; request priviledges for notifications
+    await saveLastAccess(); &#47;&#47; save the last access date and time
+  }));
+
+  &#47;* initialize workmanager and set in production.
+  Debug mode sends you a notification if the task
+  has been activated *&#47;
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: false &#47;&#47; debug to send notification when the task is activated
+  );
+  &#47;* set how often the workmanager has to be activated.
+  The starting configuration will repeat the background task
+  every 5 HOURS with the use of INTERNET CONNECTION, which is
+  necessary to perform the scraping of the webpages for the TOLC *&#47;
+  Workmanager().registerPeriodicTask(
+    &#39;TOLC_notifier_background&#39;,
+    &#39;TOLC_finder&#39;,
+    frequency: Duration(hours: backgroundTaskInterval),
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.replace
+  );
+  &#47;* add also one-off task to do at the beginning *&#47;
+  Workmanager().registerOneOffTask(
+    &#39;TOLC_notifier_start&#39;,
+    &#39;TOLC_finder&#39;,
+    constraints: Constraints(networkType: NetworkType.connected),
+    initialDelay: Duration(minutes: 5) &#47;&#47; put an initial delay
+  );
+
+  runApp(const MainNavigation());
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">tolc_notifier</a></li>
+    <li><a href="../main/">main</a></li>
+    <li class="self-crumb">main function</li>
+</ol>
+
+    <h5>main library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-left-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    tolc_notifier
+      0.1.0
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+
